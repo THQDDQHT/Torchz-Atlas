@@ -1,7 +1,9 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { getIndex } from "@/lib/indexer";
+import { getSiteName } from "@/lib/config";
 import { NoteCard } from "@/components/NoteCard";
+import { SectionHeading } from "@/components/SectionHeading";
 
 export const dynamic = "force-dynamic";
 
@@ -25,29 +27,46 @@ export default async function TagPage({ params }: { params: Promise<Params> }) {
   const notes = index.tags.get(tag) ?? [];
 
   return (
-    <div className="space-y-6">
+    <div>
+      <nav aria-label="面包屑" className="ui-text mb-8 text-xs">
+        <Link href="/" className="text-ink-faint hover:text-accent">
+          {getSiteName()}
+        </Link>
+      </nav>
+
       <header>
-        <p className="text-sm text-ink-faint">标签</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight">{tag}</h1>
-        <p className="mt-1.5 text-sm text-ink-muted">{notes.length} 篇笔记</p>
+        <div className="overline mb-3">标签</div>
+        <h1 className="text-[1.875rem] font-semibold leading-tight tracking-[-0.015em]">
+          <span aria-hidden="true" className="text-ink-faint">
+            #
+          </span>
+          {tag}
+        </h1>
       </header>
 
-      {notes.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-line px-4 py-10 text-center">
-          <p className="text-sm text-ink-muted">没有笔记使用「{tag}」这个标签。</p>
-          <p className="mt-2 text-sm">
-            <Link href="/" className="text-accent hover:underline">
-              回到首页
-            </Link>
-          </p>
-        </div>
-      ) : (
-        <div className="border-t border-line">
-          {notes.map((note) => (
-            <NoteCard key={note.id} note={note} />
-          ))}
-        </div>
-      )}
+      <div className="mt-10 space-y-1">
+        <SectionHeading aside={`${notes.length} 篇`}>
+          <span aria-hidden="true">笔记</span>
+          <span className="sr-only">使用该标签的笔记</span>
+        </SectionHeading>
+
+        {notes.length === 0 ? (
+          <div className="py-14 text-center">
+            <p className="text-[0.9375rem] text-ink-muted">没有笔记使用「{tag}」这个标签。</p>
+            <p className="ui-text mt-3 text-sm">
+              <Link href="/" className="text-accent hover:text-accent-hover">
+                回到首页
+              </Link>
+            </p>
+          </div>
+        ) : (
+          <div>
+            {notes.map((note) => (
+              <NoteCard key={note.id} note={note} />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

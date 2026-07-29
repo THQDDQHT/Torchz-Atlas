@@ -130,6 +130,41 @@ describe("GFM 与排版", () => {
   });
 });
 
+describe("剥离开头的一级标题", () => {
+  it("开启时移除首个 h1，正文首段成为第一个元素", async () => {
+    const { html } = await renderNote("# 我的标题\n\n第一段正文。", noLinks, {
+      stripLeadingH1: true,
+    });
+
+    expect(html).not.toContain("<h1");
+    expect(html).not.toContain("我的标题");
+    expect(html.trimStart().startsWith("<p>")).toBe(true);
+  });
+
+  it("只剥第一个，正文中间的一级标题保留", async () => {
+    const { html } = await renderNote("# 标题\n\n正文\n\n# 另一个一级标题", noLinks, {
+      stripLeadingH1: true,
+    });
+
+    expect(html).toContain("另一个一级标题");
+    expect(html).toContain("<h1");
+  });
+
+  it("正文不以一级标题开头时什么都不动", async () => {
+    const { html } = await renderNote("直接开始的正文\n\n## 二级标题", noLinks, {
+      stripLeadingH1: true,
+    });
+
+    expect(html).toContain("直接开始的正文");
+    expect(html).toContain("二级标题");
+  });
+
+  it("默认不剥离", async () => {
+    const { html } = await render("# 我的标题\n\n正文");
+    expect(html).toContain("我的标题");
+  });
+});
+
 describe("目录生成", () => {
   it("收集二级与三级标题并带上锚点 id", async () => {
     const { html, toc } = await render(`# 一级\n\n## 第一节\n\n### 一点五\n\n## 第二节\n\n#### 四级不进目录`);

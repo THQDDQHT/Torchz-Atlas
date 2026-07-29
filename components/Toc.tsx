@@ -2,7 +2,7 @@ import type { TocEntry } from "@/lib/markdown";
 
 function TocList({ entries }: { entries: TocEntry[] }) {
   return (
-    <ol className="mt-2 space-y-1 text-sm">
+    <ol className="ui-text mt-3 space-y-0.5 text-[0.8125rem]">
       {entries.map((e, i) => (
         <li key={`${e.id}-${i}`} className={e.depth === 3 ? "pl-4" : ""}>
           <a
@@ -27,20 +27,18 @@ export function Toc({ entries }: { entries: TocEntry[] }) {
   if (entries.length === 0) return null;
 
   return (
-    <>
-      <details className="rounded-lg border border-line px-4 py-3 md:hidden">
-        <summary className="cursor-pointer list-none text-sm font-semibold text-ink-muted">
+    <nav aria-label="文章目录" className="border-l border-line pl-5">
+      <details className="md:hidden">
+        <summary className="overline cursor-pointer list-none marker:content-none">
           目录（{entries.length}）
         </summary>
         <TocList entries={entries} />
       </details>
 
-      <details open className="hidden rounded-lg border border-line px-4 py-3 md:block">
-        <summary className="cursor-pointer list-none text-sm font-semibold text-ink-muted">
-          目录
-        </summary>
+      <details open className="hidden md:block">
+        <summary className="overline cursor-pointer list-none marker:content-none">目录</summary>
         <TocList entries={entries} />
       </details>
-    </>
+    </nav>
   );
 }

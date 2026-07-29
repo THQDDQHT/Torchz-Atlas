@@ -6,6 +6,24 @@
  * 是天然成立的，而不是需要额外用 history API 维护的东西。
  */
 
+function SearchIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <circle cx="11" cy="11" r="7" />
+      <path d="m20 20-3.5-3.5" />
+    </svg>
+  );
+}
+
 export function SearchBox({
   compact = false,
   defaultValue = "",
@@ -15,24 +33,37 @@ export function SearchBox({
   defaultValue?: string;
   autoFocus?: boolean;
 }) {
+  const id = compact ? "q-compact" : "q-main";
+
   return (
     <form action="/search" method="get" role="search" className="w-full">
-      <label htmlFor={compact ? "q-compact" : "q-main"} className="sr-only">
+      <label htmlFor={id} className="sr-only">
         搜索笔记
       </label>
-      <input
-        id={compact ? "q-compact" : "q-main"}
-        type="search"
-        name="q"
-        defaultValue={defaultValue}
-        autoFocus={autoFocus}
-        placeholder={compact ? "搜索" : "搜索标题、正文与标签"}
-        autoComplete="off"
-        className={
-          "w-full rounded-md border border-line bg-paper-raised text-ink placeholder:text-ink-faint " +
-          (compact ? "min-h-11 px-3 text-sm" : "min-h-12 px-4 text-base")
-        }
-      />
+      <div className="relative">
+        <SearchIcon
+          className={
+            "pointer-events-none absolute left-0 top-1/2 -translate-y-1/2 text-ink-faint " +
+            (compact ? "h-4 w-4" : "h-[1.15rem] w-[1.15rem]")
+          }
+        />
+        <input
+          id={id}
+          type="search"
+          name="q"
+          defaultValue={defaultValue}
+          autoFocus={autoFocus}
+          placeholder={compact ? "搜索" : "搜索标题、正文与标签"}
+          autoComplete="off"
+          className={
+            "ui-text w-full border-0 border-b border-line bg-transparent text-ink " +
+            "placeholder:text-ink-faint focus:border-accent focus:outline-none " +
+            (compact
+              ? "min-h-11 pl-6 pr-1 text-[0.8125rem]"
+              : "min-h-12 pl-8 pr-1 text-base")
+          }
+        />
+      </div>
     </form>
   );
 }

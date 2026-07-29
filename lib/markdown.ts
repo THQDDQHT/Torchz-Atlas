@@ -230,6 +230,22 @@ function allowClassNames(existing: AttrRule[] = [], ...values: string[]): AttrRu
 }
 
 /**
+ * 移除正文开头的一级标题。
+ *
+ * 笔记的第一行 `# 标题` 已经由详情页头部单独渲染（还要挂分类、时间、标签），
+ * 正文里再来一次就是同一句话印两遍。剥掉它之后首段成为正文第一个元素，
+ * 首字下沉才有地方落。
+ */
+function remarkStripLeadingH1() {
+  return (tree: MdastRoot) => {
+    const first = tree.children[0];
+    if (first && first.type === "heading" && (first as { depth: number }).depth === 1) {
+      tree.children.shift();
+    }
+  };
+}
+
+/**
  * 净化白名单：在 GitHub schema 基础上，只额外放行我们自己生成的 wikilink class。
  * 属性值用枚举而不是放开 className，避免笔记正文里的任意 class 注入到页面样式中。
  */
@@ -310,12 +326,18 @@ export interface RenderedNote {
   toc: TocEntry[];
 }
 
-export async function renderNote(raw: string, resolver: WikilinkResolver): Promise<RenderedNote> {
+export async function renderNote(
+  raw: string,
+  resolver: WikilinkResolver,
+  options: { stripLeadingH1?: boolean } = {},
+): Promise<RenderedNote> {
   const toc: TocEntry[] = [];
 
-  const file = await unified()
-    .use(remarkParse)
-    .use(remarkGfm)
+  const pipeline = unified().use(remarkParse).use(remarkGfm);
+
+  if (options.stripLeadingH1) pipeline.use(remarkStripLeadingH1);
+
+  const file = await pipeline
     .use(remarkWikilink(resolver))
     // allowDangerousHtml 保持关闭：笔记里的裸 HTML 不进入 hast，从源头掐断注入
     .use(remarkRehype)

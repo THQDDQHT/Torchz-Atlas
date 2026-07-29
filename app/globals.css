@@ -1,59 +1,78 @@
 @import "tailwindcss";
 
 /*
- * 配色以语义变量定义，深色版在 media query 里整体换掉。
- * 组件因此只写 bg-paper / text-ink，不需要给每处都挂 dark: 变体 ——
- * 深色模式跟随系统、零客户端 JS、也就没有首屏主题闪烁的问题。
+ * 视觉方向：编辑排版（Editorial）+ 电子纸的克制。
+ *
+ * 三个决定了整体气质的选择：
+ *   1. 正文与标题用衬线（Georgia + 宋体），界面元素用无衬线 —— 这是报刊与书籍的分工，
+ *      也是让一个纯文字站点"有设计"而不是"有装饰"的最省力方式。
+ *   2. 字体全部取自系统。私有站不该为了好看去请求 Google Fonts：那既要放开 CSP，
+ *      又等于把"我在什么时候读了哪篇笔记"告诉第三方。
+ *   3. 暖纸底 + 墨字 + 赭石强调色，两套主题各调一遍，深色不是把浅色反过来。
  */
+
 :root {
-  --paper: #faf9f7;
+  --paper: #fbf9f5;
   --paper-raised: #ffffff;
-  --ink: #1f1d1a;
-  --ink-muted: #6b6660;
-  --ink-faint: #9a948b;
-  --line: #e6e2db;
-  --accent: #12655c;
-  --accent-soft: #e2efec;
-  --mark: #fbeaa8;
-  --mark-ink: #3a2f00;
+  --paper-sunken: #f4f1ea;
+  --ink: #23201c;
+  --ink-muted: #6b635a;
+  --ink-faint: #9c9288;
+  --line: #e3ddd2;
+  --line-strong: #cfc6b7;
+  --accent: #a85a2b;
+  --accent-hover: #8c4820;
+  --accent-soft: #f4ece2;
+  --mark: #f7e4b8;
+  --mark-ink: #4a3608;
 
   --cat-ideas: #b4703a;
-  --cat-projects: #2f6ea8;
-  --cat-lessons: #a8483f;
-  --cat-good-things: #3f7a4a;
+  --cat-projects: #4a6e8a;
+  --cat-lessons: #a04a42;
+  --cat-good-things: #4a7a55;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --paper: #171614;
-    --paper-raised: #1f1e1b;
-    --ink: #e9e5de;
-    --ink-muted: #a49e94;
-    --ink-faint: #7c766d;
-    --line: #302e29;
-    --accent: #63c5b5;
-    --accent-soft: #1c2f2c;
-    --mark: #5c4a12;
-    --mark-ink: #fdf3cf;
+    --paper: #16140f;
+    --paper-raised: #1e1b16;
+    --paper-sunken: #12100c;
+    --ink: #eae4d9;
+    --ink-muted: #a79e90;
+    --ink-faint: #7a7264;
+    --line: #302b23;
+    --line-strong: #453e33;
+    --accent: #d9a05b;
+    --accent-hover: #e8b476;
+    --accent-soft: #241d14;
+    --mark: #4a3a12;
+    --mark-ink: #f7e4b8;
 
     --cat-ideas: #d99a63;
-    --cat-projects: #6ba6d9;
-    --cat-lessons: #d5827a;
-    --cat-good-things: #74b184;
+    --cat-projects: #7ba6c9;
+    --cat-lessons: #d18a80;
+    --cat-good-things: #7fb08d;
   }
 }
 
 @theme inline {
   --color-paper: var(--paper);
   --color-paper-raised: var(--paper-raised);
+  --color-paper-sunken: var(--paper-sunken);
   --color-ink: var(--ink);
   --color-ink-muted: var(--ink-muted);
   --color-ink-faint: var(--ink-faint);
   --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
   --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
   --color-accent-soft: var(--accent-soft);
 
-  --font-sans: ui-sans-serif, -apple-system, "PingFang SC", "Hiragino Sans GB",
+  /* 衬线：拉丁走 Georgia，中文落到宋体。两者都是系统自带，无需下载 */
+  --font-serif: Georgia, "Songti SC", "Source Han Serif SC", "Noto Serif CJK SC",
+    "SimSun", serif;
+  /* 无衬线只用于界面元素：导航、标签、元信息、按钮 */
+  --font-sans: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB",
     "Microsoft YaHei", "Source Han Sans SC", "Noto Sans CJK SC", sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono",
     "Noto Sans Mono CJK SC", monospace;
@@ -66,37 +85,83 @@ html {
 body {
   background: var(--paper);
   color: var(--ink);
-  font-family: var(--font-sans);
+  font-family: var(--font-serif);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 
-/* 键盘可达性：焦点样式必须明显，且在两个主题下都看得见 */
+::selection {
+  background: var(--accent-soft);
+  color: var(--ink);
+}
+
 :focus-visible {
   outline: 2px solid var(--accent);
-  outline-offset: 2px;
+  outline-offset: 3px;
   border-radius: 2px;
+}
+
+/* 交互一律给过渡，但尊重系统的减少动态偏好 */
+a,
+button,
+summary {
+  transition: color 180ms ease, border-color 180ms ease, background-color 180ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 mark {
   background: var(--mark);
   color: var(--mark-ink);
-  padding: 0 0.1em;
+  padding: 0.05em 0.15em;
   border-radius: 2px;
 }
 
 /*
- * 正文排版。手写而不是引入 typography 插件：中文阅读对行高和段距的要求
- * 与英文默认值差得比较远，这里的每个数值都对着需求第 9 节调过。
+ * Overline：小号、宽字距的分节标签。
+ * 这是编辑排版里最小成本的质感来源 —— 它让"最近更新"从一个普通小标题
+ * 变成一条有意为之的分节线索。中文没有大小写，改用字距来达成同样的节奏。
  */
+.overline {
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+/* 界面元素用无衬线，与正文的衬线形成分工 */
+.ui-text {
+  font-family: var(--font-sans);
+}
+
+/* 细分隔线：比 1px 实线更轻，避免把安静的页面切碎 */
+.rule {
+  border: 0;
+  border-top: 1px solid var(--line);
+}
+
+/* ─── 正文排版 ─────────────────────────────────────────────────── */
+
 .prose {
-  line-height: 1.85;
   font-size: 1.0625rem;
+  line-height: 1.9;
+  letter-spacing: 0.01em;
   word-break: break-word;
 }
 
 .prose > * + * {
-  margin-top: 1.15em;
+  margin-top: 1.3em;
 }
 
 .prose h1,
@@ -104,136 +169,206 @@ mark {
 .prose h3,
 .prose h4 {
   font-weight: 600;
-  line-height: 1.4;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
   scroll-margin-top: 5rem;
 }
 
 .prose h1 {
-  font-size: 1.6rem;
-  margin-top: 2em;
+  font-size: 1.75rem;
+  margin-top: 2.2em;
 }
 
+/* 二级标题用一条短前缀线代替整条下划线，安静但有结构 */
 .prose h2 {
-  font-size: 1.3rem;
-  margin-top: 2em;
-  padding-bottom: 0.3em;
-  border-bottom: 1px solid var(--line);
+  font-size: 1.375rem;
+  margin-top: 2.4em;
+  padding-top: 1.2em;
+  border-top: 1px solid var(--line);
 }
 
 .prose h3 {
-  font-size: 1.12rem;
-  margin-top: 1.6em;
+  font-size: 1.125rem;
+  margin-top: 1.8em;
 }
 
 .prose h4 {
   font-size: 1rem;
-  margin-top: 1.4em;
+  margin-top: 1.5em;
+  color: var(--ink-muted);
 }
 
 .prose a {
   color: var(--accent);
   text-decoration: underline;
-  text-underline-offset: 0.2em;
+  text-underline-offset: 0.22em;
   text-decoration-thickness: 1px;
+  text-decoration-color: color-mix(in srgb, var(--accent) 40%, transparent);
+}
+
+.prose a:hover {
+  color: var(--accent-hover);
+  text-decoration-color: currentColor;
 }
 
 .prose strong {
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .prose ul,
 .prose ol {
-  padding-left: 1.4em;
+  padding-left: 1.3em;
 }
 
 .prose ul {
-  list-style: disc;
+  list-style: none;
+}
+
+/* 自定义项目符号：小方块比圆点更贴合印刷感 */
+.prose ul > li {
+  position: relative;
+}
+
+.prose ul > li::before {
+  content: "";
+  position: absolute;
+  left: -1.1em;
+  top: 0.82em;
+  width: 4px;
+  height: 4px;
+  background: var(--line-strong);
 }
 
 .prose ol {
   list-style: decimal;
 }
 
+.prose ol::marker,
+.prose li::marker {
+  color: var(--ink-faint);
+}
+
 .prose li + li {
-  margin-top: 0.4em;
+  margin-top: 0.5em;
 }
 
 .prose li > ul,
 .prose li > ol {
-  margin-top: 0.4em;
+  margin-top: 0.5em;
 }
 
+/* Pull quote：放大、衬线斜体、左侧粗线 */
 .prose blockquote {
-  border-left: 3px solid var(--accent);
-  padding: 0.1em 0 0.1em 1em;
+  border-left: 2px solid var(--accent);
+  padding: 0.2em 0 0.2em 1.2em;
   color: var(--ink-muted);
+  font-style: italic;
+  font-size: 1.09em;
+  line-height: 1.75;
+}
+
+.prose blockquote p {
+  margin-top: 0.6em;
+}
+
+.prose blockquote p:first-child {
+  margin-top: 0;
 }
 
 .prose hr {
   border: 0;
   border-top: 1px solid var(--line);
-  margin: 2.4em 0;
+  margin: 3em auto;
+  width: 40%;
 }
 
 .prose code {
   font-family: var(--font-mono);
-  font-size: 0.875em;
-  background: var(--accent-soft);
-  padding: 0.15em 0.4em;
+  font-size: 0.85em;
+  background: var(--paper-sunken);
+  border: 1px solid var(--line);
+  padding: 0.12em 0.4em;
   border-radius: 3px;
 }
 
-/* 代码块必须能横向滚动，不能把手机页面撑破（需求 FR-03 第 6 条） */
 .prose pre {
-  background: var(--paper-raised);
+  background: var(--paper-sunken);
   border: 1px solid var(--line);
-  border-radius: 6px;
-  padding: 0.9em 1em;
+  border-radius: 4px;
+  padding: 1em 1.15em;
   overflow-x: auto;
-  font-size: 0.875rem;
-  line-height: 1.6;
+  font-size: 0.8125rem;
+  line-height: 1.7;
 }
 
 .prose pre code {
   background: none;
+  border: 0;
   padding: 0;
   font-size: inherit;
 }
 
-/* 宽表格同理：滚动条出现在表格自己身上，body 永远不横向滚动 */
 .prose .table-scroll {
   overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 4px;
 }
 
 .prose table {
   border-collapse: collapse;
-  font-size: 0.94rem;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
   min-width: 100%;
 }
 
 .prose th,
 .prose td {
-  border: 1px solid var(--line);
-  padding: 0.5em 0.75em;
+  border-bottom: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+  padding: 0.6em 0.85em;
   text-align: left;
+  line-height: 1.6;
+}
+
+.prose th:last-child,
+.prose td:last-child {
+  border-right: 0;
+}
+
+.prose tbody tr:last-child td {
+  border-bottom: 0;
 }
 
 .prose th {
-  background: var(--accent-soft);
+  background: var(--paper-sunken);
   font-weight: 600;
   white-space: nowrap;
+  color: var(--ink-muted);
 }
 
 .prose img {
   max-width: 100%;
   height: auto;
-  border-radius: 4px;
+  border-radius: 3px;
 }
 
-/* 站内 wikilink 与其降级形态 */
+/* 首字下沉：只作用于正文第一段，且只在够宽的屏幕上 */
+@media (min-width: 640px) {
+  .prose-dropcap > p:first-child::first-letter {
+    float: left;
+    font-size: 3.1em;
+    line-height: 0.92;
+    font-weight: 600;
+    margin: 0.02em 0.12em 0 0;
+    color: var(--accent);
+  }
+}
+
+/* wikilink 与它的两种降级形态 */
 .prose a.wikilink {
   text-decoration-style: dotted;
   text-decoration-thickness: 1.5px;
+  text-underline-offset: 0.25em;
 }
 
 .prose .wikilink-missing,

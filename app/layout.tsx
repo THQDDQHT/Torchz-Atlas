@@ -8,7 +8,6 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: { default: getSiteName(), template: `%s · ${getSiteName()}` },
     description: getSiteDescription(),
-    // 私有知识库不该被任何爬虫收录，即使 Access 挡在前面
     robots: { index: false, follow: false, nocache: true },
   };
 }
@@ -26,49 +25,55 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-screen bg-paper text-ink">
         <a
           href="#main"
-          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-paper-raised focus:px-4 focus:py-2 focus:shadow"
+          className="ui-text sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:border focus:border-line focus:bg-paper-raised focus:px-4 focus:py-2 focus:text-sm"
         >
           跳到正文
         </a>
 
+        {/*
+          报头式两段结构：上段是刊名与检索，下段是栏目。
+          两条细线把它框成一个整体，页面其余部分因此可以完全不用边框。
+        */}
         <header className="border-b border-line">
-          <div className="mx-auto w-full max-w-4xl px-4 py-3">
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <div className="mx-auto w-full max-w-3xl px-5">
+            <div className="flex items-center justify-between gap-4 py-4">
               <Link
                 href="/"
-                className="flex min-h-11 items-center text-lg font-semibold tracking-tight"
+                className="text-[1.35rem] font-semibold tracking-[0.14em] text-ink hover:text-accent"
               >
                 {siteName}
               </Link>
-
-              <nav aria-label="分类导航" className="order-3 w-full sm:order-2 sm:w-auto">
-                <ul className="flex flex-wrap items-center gap-x-1 gap-y-1 text-sm">
-                  {CATEGORIES.map((c) => (
-                    <li key={c.slug}>
-                      <Link
-                        href={`/category/${c.slug}`}
-                        className="flex min-h-11 items-center rounded px-2 text-ink-muted hover:text-accent"
-                      >
-                        {c.name}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </nav>
-
-              <div className="order-2 ml-auto sm:order-3 sm:w-56">
+              <div className="w-40 sm:w-56">
                 <SearchBox compact />
               </div>
             </div>
+
+            <nav aria-label="分类导航" className="-mx-2 overflow-x-auto pb-1">
+              <ul className="flex items-center whitespace-nowrap">
+                {CATEGORIES.map((c) => (
+                  <li key={c.slug}>
+                    <Link
+                      href={`/category/${c.slug}`}
+                      className="ui-text flex min-h-11 items-center px-2 text-[0.8125rem] tracking-[0.05em] text-ink-muted hover:text-accent"
+                    >
+                      {c.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
           </div>
         </header>
 
-        <main id="main" className="mx-auto w-full max-w-4xl px-4 py-8">
+        <main id="main" className="mx-auto w-full max-w-3xl px-5 py-10 sm:py-14">
           {children}
         </main>
 
-        <footer className="mx-auto w-full max-w-4xl px-4 pb-10 pt-4 text-sm text-ink-faint">
-          <p>{siteName} · Markdown 是唯一事实来源，此处只读不改。</p>
+        <footer className="mx-auto w-full max-w-3xl px-5 pb-12">
+          <hr className="rule" />
+          <p className="ui-text mt-4 text-xs leading-relaxed text-ink-faint">
+            {siteName} · Markdown 是唯一事实来源，此处只读不改。
+          </p>
         </footer>
       </body>
     </html>

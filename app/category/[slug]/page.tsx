@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { CATEGORY_BY_SLUG } from "@/lib/config";
+import { CATEGORY_BY_SLUG, getSiteName } from "@/lib/config";
 import { getIndex } from "@/lib/indexer";
 import { NoteCard } from "@/components/NoteCard";
+import { SectionHeading } from "@/components/SectionHeading";
 
 export const dynamic = "force-dynamic";
 
@@ -46,49 +47,74 @@ export default async function CategoryPage({
   const description = index.categoryDescriptions.get(category.slug) ?? category.fallbackDescription;
 
   return (
-    <div className="space-y-6">
+    <div>
+      <nav aria-label="面包屑" className="ui-text mb-8 text-xs">
+        <Link href="/" className="text-ink-faint hover:text-accent">
+          {getSiteName()}
+        </Link>
+      </nav>
+
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight">{category.name}</h1>
-        <p className="mt-1.5 text-sm leading-relaxed text-ink-muted">{description}</p>
+        <div className="ui-text overline mb-3 flex items-center gap-2">
+          <span
+            aria-hidden="true"
+            className="inline-block h-[5px] w-[5px]"
+            style={{ background: `var(--cat-${category.slug})` }}
+          />
+          分类
+        </div>
+        <h1 className="text-[1.875rem] font-semibold leading-tight tracking-[-0.015em]">
+          {category.name}
+        </h1>
+        <p className="mt-3 max-w-[46ch] text-[0.9375rem] leading-relaxed text-ink-muted">
+          {description}
+        </p>
       </header>
 
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line pb-3">
-        <p className="text-sm text-ink-faint">{notes.length} 篇笔记</p>
-        <nav aria-label="排序方式" className="flex items-center gap-1 text-sm">
-          <Link
-            href={`/category/${category.slug}`}
-            aria-current={!sortByTitle ? "true" : undefined}
-            className={
-              "flex min-h-11 items-center rounded px-2.5 " +
-              (!sortByTitle ? "font-semibold text-accent" : "text-ink-muted hover:text-accent")
-            }
-          >
-            最新修改
-          </Link>
-          <Link
-            href={`/category/${category.slug}?sort=title`}
-            aria-current={sortByTitle ? "true" : undefined}
-            className={
-              "flex min-h-11 items-center rounded px-2.5 " +
-              (sortByTitle ? "font-semibold text-accent" : "text-ink-muted hover:text-accent")
-            }
-          >
-            标题 A–Z
-          </Link>
-        </nav>
-      </div>
+      <div className="mt-10 space-y-1">
+        <SectionHeading aside={`${notes.length} 篇`}>
+          <span className="sr-only">笔记列表</span>
+          <span aria-hidden="true">笔记</span>
+        </SectionHeading>
 
-      {notes.length === 0 ? (
-        <p className="rounded-lg border border-dashed border-line px-4 py-10 text-center text-sm text-ink-muted">
-          {category.emptyText}
-        </p>
-      ) : (
-        <div>
-          {notes.map((note) => (
-            <NoteCard key={note.id} note={note} showCategory={false} />
-          ))}
-        </div>
-      )}
+        {notes.length > 1 && (
+          <nav aria-label="排序方式" className="ui-text -ml-2 flex items-center pt-1 text-xs">
+            <Link
+              href={`/category/${category.slug}`}
+              aria-current={!sortByTitle ? "true" : undefined}
+              className={
+                "flex min-h-11 items-center px-2 " +
+                (!sortByTitle ? "text-accent" : "text-ink-faint hover:text-accent")
+              }
+            >
+              最新修改
+            </Link>
+            <span aria-hidden="true" className="text-ink-faint/40">
+              ·
+            </span>
+            <Link
+              href={`/category/${category.slug}?sort=title`}
+              aria-current={sortByTitle ? "true" : undefined}
+              className={
+                "flex min-h-11 items-center px-2 " +
+                (sortByTitle ? "text-accent" : "text-ink-faint hover:text-accent")
+              }
+            >
+              标题 A–Z
+            </Link>
+          </nav>
+        )}
+
+        {notes.length === 0 ? (
+          <p className="py-14 text-center text-[0.9375rem] text-ink-muted">{category.emptyText}</p>
+        ) : (
+          <div>
+            {notes.map((note) => (
+              <NoteCard key={note.id} note={note} showCategory={false} />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
