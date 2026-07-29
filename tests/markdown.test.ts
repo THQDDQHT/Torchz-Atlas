@@ -122,11 +122,28 @@ describe("GFM 与排版", () => {
     expect(html).toContain("<table>");
   });
 
-  it("代码块保留原始格式", async () => {
+  it("代码块保留原始格式并带上语法高亮", async () => {
     const { html } = await render("```js\nconst a = 1;\n```");
 
-    expect(html).toContain("<pre>");
-    expect(html).toContain("const a = 1;");
+    expect(html).toContain("<pre");
+    expect(html).toContain("const");
+    // shiki 在服务端把配色写成 CSS 变量，两套主题各一份，客户端零 JS
+    expect(html).toContain("--shiki-light");
+    expect(html).toContain("--shiki-dark");
+  });
+
+  it("行内代码不被包装成高亮结构", async () => {
+    const { html } = await render("一段 `行内代码` 而已");
+
+    expect(html).toContain("<code>行内代码</code>");
+    expect(html).not.toContain("data-rehype-pretty-code-figure");
+  });
+
+  it("未标语言的代码块不报错", async () => {
+    const { html } = await render("```\n没有语言标记\n```");
+
+    expect(html).toContain("没有语言标记");
+    expect(html).toContain("<pre");
   });
 });
 

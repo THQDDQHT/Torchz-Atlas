@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CATEGORIES, RECENT_LIMIT, getSiteDescription } from "@/lib/config";
+import { CATEGORIES, RECENT_LIMIT, getSiteDescription, getSiteName } from "@/lib/config";
 import { getIndex } from "@/lib/indexer";
 import { SearchBox } from "@/components/SearchBox";
 import { NoteCard } from "@/components/NoteCard";
@@ -15,8 +15,10 @@ export default async function HomePage() {
   return (
     <div className="space-y-9">
       <section>
-        <p className="text-sm text-text-muted">{getSiteDescription()}</p>
-        <div className="mt-3 max-w-md">
+        {/* 文档需要一个 h1。侧栏那个站点名是导航，不承担标题语义。 */}
+        <h1 className="text-lg font-semibold text-text">{getSiteName()}</h1>
+        <p className="mt-1 text-sm text-text-muted">{getSiteDescription()}</p>
+        <div className="mt-4 max-w-md">
           <SearchBox />
         </div>
       </section>

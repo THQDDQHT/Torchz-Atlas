@@ -50,10 +50,16 @@ export function SearchBox({
           autoFocus={autoFocus}
           placeholder="搜索笔记"
           autoComplete="off"
+          /*
+            字号必须 ≥16px：iOS Safari 对更小的输入框会在聚焦时放大整个页面，
+            用户得双指缩回来。这是手机上最容易被直接关掉的一处。
+            也不要用 focus:outline-none —— 它的特异度会盖过全局的 :focus-visible，
+            让这个输入框成为全站唯一没有焦点环的控件。
+          */
           className={
-            "w-full rounded border border-border bg-bg pl-8 pr-2.5 text-text " +
-            "placeholder:text-text-faint focus:border-accent focus:outline-none " +
-            (compact ? "h-8 text-[0.8125rem]" : "h-10 text-sm")
+            "w-full rounded border border-border bg-bg pl-8 pr-2.5 text-[16px] text-text " +
+            "placeholder:text-text-faint focus:border-accent " +
+            (compact ? "h-11 lg:h-9 lg:text-sm" : "h-12")
           }
         />
       </div>

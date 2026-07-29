@@ -16,6 +16,7 @@ import remarkGfm from "remark-gfm";
 import remarkRehype from "remark-rehype";
 import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
 import rehypeSlug from "rehype-slug";
+import rehypePrettyCode from "rehype-pretty-code";
 import rehypeStringify from "rehype-stringify";
 import { visit } from "unist-util-visit";
 import { toString as mdastToString } from "mdast-util-to-string";
@@ -342,6 +343,19 @@ export async function renderNote(
     // allowDangerousHtml 保持关闭：笔记里的裸 HTML 不进入 hast，从源头掐断注入
     .use(remarkRehype)
     .use(rehypeSanitize, sanitizeSchema)
+    /*
+     * 高亮跑在净化之后：净化会剥掉它不认识的属性，而 shiki 产出的正是
+     * inline style 与 data-* —— 顺序反过来等于自己把自己的着色清掉
+     * （rehypeSlug 的 id 和外链的 rel 也是同样的理由）。
+     * 着色在服务端编译期完成，客户端不加载任何 JavaScript。
+     */
+    .use(rehypePrettyCode, {
+      theme: { light: "github-light", dark: "github-dark-dimmed" },
+      // 背景由 .prose pre 自己控制，两套主题才能跟着页面走
+      keepBackground: false,
+      // 不设 defaultLang：设了它连行内代码都会被包成高亮结构，
+      // `像这样的一小段` 会从一个 <code> 变成三层嵌套。没标语言的就让它是纯文本。
+    })
     .use(rehypeSlug)
     .use(rehypeExternalLinks)
     .use(rehypeWrapTables)

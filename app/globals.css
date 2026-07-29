@@ -18,7 +18,8 @@
 
   --text: #2e2c2a;
   --text-muted: #6b6866;
-  --text-faint: #9a9694;
+  /* 4.62:1 于白底。上一版的 #9a9694 只有 2.93:1，而全站所有次要信息都用这个色 */
+  --text-faint: #787572;
 
   --border: #e5e4e1;
   --border-strong: #d3d1cd;
@@ -44,7 +45,8 @@
 
     --text: #dcdad7;
     --text-muted: #a09d99;
-    --text-faint: #74716e;
+    /* 4.55:1 于 #202020。上一版的 #74716e 只有 3.36:1 */
+    --text-faint: #8d8a86;
 
     --border: #333331;
     --border-strong: #45443f;
@@ -90,8 +92,15 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-sans);
-  font-size: 15px;
+  font-size: 16px;
   -webkit-font-smoothing: antialiased;
+}
+
+/* 手机上笔画更密，正文再大一档 */
+@media (max-width: 640px) {
+  body {
+    font-size: 17px;
+  }
 }
 
 ::selection {
@@ -121,24 +130,46 @@ summary {
   }
 }
 
+@keyframes loading-slide {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(400%);
+  }
+}
+
+/* 命中词加粗而不只是变色：屏幕阅读器听不出颜色，色觉障碍用户也不该只靠色相分辨 */
 mark {
   background: var(--mark);
   color: var(--mark-text);
   border-radius: 2px;
   padding: 0 0.1em;
+  font-weight: 600;
 }
 
-/* 侧边栏文件树的行：紧凑、整行可点、hover 出背景 —— 文件管理器的手感 */
+/*
+ * 侧边栏文件树的行：紧凑、整行可点、hover 出背景 —— 文件管理器的手感。
+ * 高度用 rem 而非 px，用户把系统字号调到 200% 时行会跟着长，文字不会撑破它。
+ */
 .tree-row {
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  min-height: 30px;
+  min-height: 1.9rem;
   padding: 0 0.5rem;
   border-radius: 4px;
   font-size: 0.8125rem;
   line-height: 1.4;
   color: var(--text-muted);
+}
+
+/* 触屏上是手指不是鼠标：44px 是能稳稳点中的下限，桌面不需要这么松 */
+@media (max-width: 1023px) {
+  .tree-row {
+    min-height: 2.75rem;
+    font-size: 0.9375rem;
+  }
 }
 
 .tree-row:hover {
@@ -172,14 +203,17 @@ summary::-webkit-details-marker {
 /* ─── 正文排版 ─────────────────────────────────────────────────── */
 
 .prose {
-  font-size: 0.9375rem;
-  line-height: 1.75;
+  font-size: 1rem;
+  line-height: 1.8;
   color: var(--text);
   word-break: break-word;
+  /* 36em 在中文下约等于 36 字一行，落在 30–40 的舒适区，且随字号自动伸缩。
+     上一版是定宽容器撑满，实测 47 字一行。 */
+  max-width: 36em;
 }
 
 .prose > * + * {
-  margin-top: 1.1em;
+  margin-top: 1.4em;
 }
 
 .prose h1,
@@ -189,28 +223,32 @@ summary::-webkit-details-marker {
   font-weight: 600;
   line-height: 1.4;
   color: var(--text);
-  scroll-margin-top: 1.5rem;
+  /* 移动端顶栏是 sticky 的，锚点跳转要留出它的高度，否则标题被盖住 */
+  scroll-margin-top: 4rem;
 }
 
+/* 标题之上留白远多于其下：这是"这里开始新一节"的主要信号 */
 .prose h1 {
-  font-size: 1.5rem;
-  margin-top: 2em;
+  font-size: 1.75rem;
+  margin-top: 2.2em;
 }
 
 .prose h2 {
-  font-size: 1.25rem;
-  margin-top: 2em;
+  font-size: 1.5rem;
+  margin-top: 2.2em;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid var(--border);
 }
 
 .prose h3 {
-  font-size: 1.0625rem;
-  margin-top: 1.6em;
+  font-size: 1.25rem;
+  margin-top: 1.8em;
 }
 
+/* 不再用 muted：上一版的 h4 比正文还淡，层级是倒的 */
 .prose h4 {
-  font-size: 0.9375rem;
-  margin-top: 1.4em;
-  color: var(--text-muted);
+  font-size: 1rem;
+  margin-top: 1.5em;
 }
 
 .prose a {
@@ -246,17 +284,21 @@ summary::-webkit-details-marker {
 }
 
 .prose li + li {
-  margin-top: 0.35em;
+  margin-top: 0.5em;
 }
 
 .prose li > ul,
 .prose li > ol {
-  margin-top: 0.35em;
+  margin-top: 0.5em;
 }
 
+/* 引用块靠底色区分而不是靠一条粗竖线：长文里连续几个引用时，
+   竖线会在左边排成一列栅栏，底色则安静得多 */
 .prose blockquote {
-  border-left: 3px solid var(--border-strong);
-  padding-left: 1em;
+  background: var(--bg-code);
+  border-left: 1px solid var(--border-strong);
+  border-radius: 0 4px 4px 0;
+  padding: 0.8em 1em;
   color: var(--text-muted);
 }
 
@@ -278,16 +320,32 @@ summary::-webkit-details-marker {
   background: var(--bg-code);
   border: 1px solid var(--border);
   border-radius: 5px;
-  padding: 0.85em 1em;
+  padding: 1em 1.2em;
   overflow-x: auto;
-  font-size: 0.8125rem;
-  line-height: 1.65;
+  font-size: 0.875rem;
+  line-height: 1.7;
 }
 
 .prose pre code {
   background: none;
+  border: 0;
   padding: 0;
   font-size: inherit;
+}
+
+/*
+ * 语法高亮由 shiki 在服务端编译期完成，产出的是带 inline style 的 span，
+ * 客户端零 JavaScript。两套主题各生成一份，用 media query 切换 —— 深色下
+ * 直接沿用浅色配色会让注释和字符串糊成一团。
+ */
+.prose pre code[data-language] span {
+  color: var(--shiki-light);
+}
+
+@media (prefers-color-scheme: dark) {
+  .prose pre code[data-language] span {
+    color: var(--shiki-dark);
+  }
 }
 
 .prose .table-scroll {

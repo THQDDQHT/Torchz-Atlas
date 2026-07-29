@@ -22,3 +22,6 @@ npm-debug.log*
 
 # 测试
 coverage/
+
+# Impeccable 评审快照：本地参考，不进公开仓
+.impeccable/

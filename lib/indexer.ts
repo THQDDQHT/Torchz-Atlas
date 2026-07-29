@@ -53,6 +53,13 @@ export interface KnowledgeIndex {
   tags: Map<string, Note[]>;
   /** 标题与文件名 → 笔记，可能一对多，wikilink 解析用 */
   titleIndex: Map<string, Note[]>;
+  /**
+   * 反向链接：笔记 id → 引用了它的那些笔记。
+   *
+   * 这是这个阅读器相对本地编辑器唯一不可替代的能力 —— 打开一篇笔记时能看见
+   * "谁提到过我"。数据本来就在（每篇的 wikilinks 已在解析时收集），只差反向建表。
+   */
+  backlinks: Map<string, Note[]>;
   lastModified: number;
   errors: IndexError[];
 }
@@ -202,6 +209,28 @@ async function buildIndex(root: string, files: ScannedFile[]): Promise<Knowledge
     }
   }
 
+  // 反向建表：对每篇笔记的每个 wikilink，按与正向解析完全相同的规则定位目标，
+  // 再把来源记到目标名下。规则必须一致，否则会出现"点得过去但反链里看不见"。
+  const backlinks = new Map<string, Note[]>();
+  const resolveTarget = (target: string, fromDir: string): Note | null => {
+    const candidates = titleIndex.get(target.trim());
+    if (!candidates || candidates.length === 0) return null;
+    if (candidates.length === 1) return candidates[0];
+    const sameDir = candidates.filter((n) => n.dir === fromDir);
+    return sameDir.length === 1 ? sameDir[0] : null;
+  };
+
+  for (const source of notes) {
+    for (const target of source.wikilinks) {
+      const hit = resolveTarget(target, source.dir);
+      if (!hit || hit.id === source.id) continue;
+
+      const list = backlinks.get(hit.id);
+      if (!list) backlinks.set(hit.id, [source]);
+      else if (!list.some((n) => n.id === source.id)) list.push(source);
+    }
+  }
+
   return {
     notes,
     byId,
@@ -209,6 +238,7 @@ async function buildIndex(root: string, files: ScannedFile[]): Promise<Knowledge
     categoryDescriptions,
     tags,
     titleIndex,
+    backlinks,
     lastModified: notes.reduce((max, n) => Math.max(max, n.modifiedAt), 0),
     errors,
   };

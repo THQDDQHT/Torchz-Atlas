@@ -5,12 +5,14 @@ import type { Metadata } from "next";
 import { getIndex, createWikilinkResolver } from "@/lib/indexer";
 import { hrefSegmentsToNoteId, resolveNotePath } from "@/lib/paths";
 import { renderNote } from "@/lib/markdown";
+import { renderNoteCached } from "@/lib/render-cache";
 import { CATEGORY_BY_SLUG } from "@/lib/config";
 import { formatDateTime, toISO } from "@/lib/format";
 import { CategoryBadge } from "@/components/CategoryBadge";
 import { TagList } from "@/components/TagList";
 import { Toc } from "@/components/Toc";
 import { CopyLinkButton } from "@/components/CopyLinkButton";
+import { NoteFooterLinks } from "@/components/NoteFooterLinks";
 
 export const dynamic = "force-dynamic";
 
@@ -55,14 +57,23 @@ export default async function NotePage({ params }: { params: Promise<Params> }) 
 
   const resolver = createWikilinkResolver(index, note.dir);
   // 标题由下面的页头单独渲染，正文里那行 # 标题要剥掉，否则同一句话印两遍
-  const { html, toc } = await renderNote(raw, resolver, { stripLeadingH1: true });
+  const { html, toc } = await renderNoteCached(note.id, note.modifiedAt, () =>
+    renderNote(raw, resolver, { stripLeadingH1: true }),
+  );
 
   const category = CATEGORY_BY_SLUG.get(note.category);
+
+  // 同分类里按修改时间相邻的两篇。列表已排好序，取前后一位即可。
+  const siblings = index.byCategory.get(note.category) ?? [];
+  const pos = siblings.findIndex((n) => n.id === note.id);
+  const prev = pos > 0 ? siblings[pos - 1] : null;
+  const next = pos >= 0 && pos < siblings.length - 1 ? siblings[pos + 1] : null;
 
   return (
     <article>
       <header className="border-b border-border pb-4">
-        <h1 className="text-[1.5rem] font-semibold leading-tight text-text">{note.title}</h1>
+        {/* 正文里 h2 已经是 24px，标题要再高一档才镇得住页面 */}
+        <h1 className="text-[1.75rem] font-bold leading-tight text-text">{note.title}</h1>
 
         <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-text-faint">
           <CategoryBadge slug={note.category} name={note.categoryName} />
@@ -86,7 +97,13 @@ export default async function NotePage({ params }: { params: Promise<Params> }) 
       */}
       <div className="prose mt-6" dangerouslySetInnerHTML={{ __html: html }} />
 
-      <footer className="mt-12 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3">
+      <NoteFooterLinks
+        backlinks={index.backlinks.get(note.id) ?? []}
+        prev={prev}
+        next={next}
+      />
+
+      <footer className="mt-10 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3">
         <Link
           href={`/category/${note.category}`}
           className="-ml-2 flex h-9 items-center rounded px-2 text-xs text-text-muted hover:bg-bg-hover hover:text-text"

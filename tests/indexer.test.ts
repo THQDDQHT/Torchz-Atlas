@@ -143,6 +143,41 @@ describe("wikilink 解析", () => {
   });
 });
 
+describe("反向链接", () => {
+  it("记录谁引用了这篇笔记", async () => {
+    const index = await getIndex();
+    const inbound = index.backlinks.get("03 好东西/表格与代码.md") ?? [];
+
+    expect(inbound.map((n) => n.id)).toContain("00 灵感想法/想法收件箱.md");
+  });
+
+  it("无法消歧的 wikilink 不产生反链", async () => {
+    const index = await getIndex();
+
+    // 「表格与代码」从 03 好东西 引用「重复的标题」，跨目录同名无法消歧；
+    // 正向不跳转，反向也不该凭空多出一条来源
+    for (const id of ["00 灵感想法/重复的标题.md", "01 项目/重复的标题.md"]) {
+      const inbound = index.backlinks.get(id) ?? [];
+      expect(inbound.map((n) => n.id)).not.toContain("03 好东西/表格与代码.md");
+    }
+  });
+
+  it("指向不存在笔记的 wikilink 不产生条目", async () => {
+    const index = await getIndex();
+    expect(index.backlinks.has("根本不存在的笔记")).toBe(false);
+  });
+
+  it("反链方向与正向解析一致：同目录优先的那篇才收到反链", async () => {
+    const index = await getIndex();
+    // 想法收件箱在 00 灵感想法，引用「重复的标题」时命中同目录那篇
+    const sameDir = index.backlinks.get("00 灵感想法/重复的标题.md") ?? [];
+    const otherDir = index.backlinks.get("01 项目/重复的标题.md") ?? [];
+
+    expect(sameDir.map((n) => n.id)).toContain("00 灵感想法/想法收件箱.md");
+    expect(otherDir.map((n) => n.id)).not.toContain("00 灵感想法/想法收件箱.md");
+  });
+});
+
 describe("自动感知文件变化", () => {
   const tempNote = path.join(FIXTURE, "02 踩坑记录", "临时新增笔记.md");
 

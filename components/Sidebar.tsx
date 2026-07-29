@@ -49,7 +49,10 @@ export async function SidebarContent() {
 /** 桌面固定侧栏 */
 export async function Sidebar() {
   return (
-    <aside className="fixed inset-y-0 left-0 hidden w-60 flex-col border-r border-border bg-bg-sidebar lg:flex">
+    <aside
+      aria-label="知识库导航"
+      className="fixed inset-y-0 left-0 hidden w-60 flex-col border-r border-border bg-bg-sidebar lg:flex"
+    >
       <div className="px-4 pb-1 pt-4">
         <Link
           href="/"
