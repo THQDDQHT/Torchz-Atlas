@@ -1,79 +1,83 @@
 @import "tailwindcss";
 
 /*
- * 视觉方向：编辑排版（Editorial）+ 电子纸的克制。
+ * 视觉方向：本地笔记软件（Obsidian / Typora）的界面语言。
  *
- * 三个决定了整体气质的选择：
- *   1. 正文与标题用衬线（Georgia + 宋体），界面元素用无衬线 —— 这是报刊与书籍的分工，
- *      也是让一个纯文字站点"有设计"而不是"有装饰"的最省力方式。
- *   2. 字体全部取自系统。私有站不该为了好看去请求 Google Fonts：那既要放开 CSP，
- *      又等于把"我在什么时候读了哪篇笔记"告诉第三方。
- *   3. 暖纸底 + 墨字 + 赭石强调色，两套主题各调一遍，深色不是把浅色反过来。
+ * 这是一个工具，不是一本杂志。所以：
+ *   - 全站系统无衬线字体，不引入任何字体文件，不做字距装饰。
+ *   - 中性灰阶 + 单一链接蓝，颜色只用来区分层级和标示可点击，不用来"好看"。
+ *   - 左侧固定文件树，右侧阅读区。导航常驻，随时能跳到另一篇。
  */
 
 :root {
-  --paper: #fbf9f5;
-  --paper-raised: #ffffff;
-  --paper-sunken: #f4f1ea;
-  --ink: #23201c;
-  --ink-muted: #6b635a;
-  --ink-faint: #9c9288;
-  --line: #e3ddd2;
-  --line-strong: #cfc6b7;
-  --accent: #a85a2b;
-  --accent-hover: #8c4820;
-  --accent-soft: #f4ece2;
-  --mark: #f7e4b8;
-  --mark-ink: #4a3608;
+  --bg: #ffffff;
+  --bg-sidebar: #f7f7f5;
+  --bg-hover: #eeeeec;
+  --bg-active: #e6e6e3;
+  --bg-code: #f5f5f3;
 
-  --cat-ideas: #b4703a;
-  --cat-projects: #4a6e8a;
-  --cat-lessons: #a04a42;
-  --cat-good-things: #4a7a55;
+  --text: #2e2c2a;
+  --text-muted: #6b6866;
+  --text-faint: #9a9694;
+
+  --border: #e5e4e1;
+  --border-strong: #d3d1cd;
+
+  --accent: #3b6ea5;
+  --accent-hover: #2d5885;
+  --mark: #fdf0c4;
+  --mark-text: #4a3a08;
+
+  --cat-ideas: #c08040;
+  --cat-projects: #4a7fb5;
+  --cat-lessons: #b55f55;
+  --cat-good-things: #5a9068;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --paper: #16140f;
-    --paper-raised: #1e1b16;
-    --paper-sunken: #12100c;
-    --ink: #eae4d9;
-    --ink-muted: #a79e90;
-    --ink-faint: #7a7264;
-    --line: #302b23;
-    --line-strong: #453e33;
-    --accent: #d9a05b;
-    --accent-hover: #e8b476;
-    --accent-soft: #241d14;
-    --mark: #4a3a12;
-    --mark-ink: #f7e4b8;
+    --bg: #202020;
+    --bg-sidebar: #1a1a1a;
+    --bg-hover: #2a2a2a;
+    --bg-active: #333333;
+    --bg-code: #262626;
 
-    --cat-ideas: #d99a63;
-    --cat-projects: #7ba6c9;
-    --cat-lessons: #d18a80;
-    --cat-good-things: #7fb08d;
+    --text: #dcdad7;
+    --text-muted: #a09d99;
+    --text-faint: #74716e;
+
+    --border: #333331;
+    --border-strong: #45443f;
+
+    --accent: #7aa8d8;
+    --accent-hover: #96bde6;
+    --mark: #4d4318;
+    --mark-text: #f0e4b8;
+
+    --cat-ideas: #d09a60;
+    --cat-projects: #74a3d0;
+    --cat-lessons: #cc8378;
+    --cat-good-things: #7fae8c;
   }
 }
 
 @theme inline {
-  --color-paper: var(--paper);
-  --color-paper-raised: var(--paper-raised);
-  --color-paper-sunken: var(--paper-sunken);
-  --color-ink: var(--ink);
-  --color-ink-muted: var(--ink-muted);
-  --color-ink-faint: var(--ink-faint);
-  --color-line: var(--line);
-  --color-line-strong: var(--line-strong);
+  --color-bg: var(--bg);
+  --color-bg-sidebar: var(--bg-sidebar);
+  --color-bg-hover: var(--bg-hover);
+  --color-bg-active: var(--bg-active);
+  --color-bg-code: var(--bg-code);
+  --color-text: var(--text);
+  --color-text-muted: var(--text-muted);
+  --color-text-faint: var(--text-faint);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
   --color-accent: var(--accent);
   --color-accent-hover: var(--accent-hover);
-  --color-accent-soft: var(--accent-soft);
 
-  /* 衬线：拉丁走 Georgia，中文落到宋体。两者都是系统自带，无需下载 */
-  --font-serif: Georgia, "Songti SC", "Source Han Serif SC", "Noto Serif CJK SC",
-    "SimSun", serif;
-  /* 无衬线只用于界面元素：导航、标签、元信息、按钮 */
-  --font-sans: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB",
-    "Microsoft YaHei", "Source Han Sans SC", "Noto Sans CJK SC", sans-serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", "Source Han Sans SC", "Noto Sans CJK SC",
+    sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono",
     "Noto Sans Mono CJK SC", monospace;
 }
@@ -83,29 +87,27 @@ html {
 }
 
 body {
-  background: var(--paper);
-  color: var(--ink);
-  font-family: var(--font-serif);
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 15px;
   -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
 }
 
 ::selection {
-  background: var(--accent-soft);
-  color: var(--ink);
+  background: color-mix(in srgb, var(--accent) 25%, transparent);
 }
 
 :focus-visible {
   outline: 2px solid var(--accent);
-  outline-offset: 3px;
-  border-radius: 2px;
+  outline-offset: 2px;
+  border-radius: 3px;
 }
 
-/* 交互一律给过渡，但尊重系统的减少动态偏好 */
 a,
 button,
 summary {
-  transition: color 180ms ease, border-color 180ms ease, background-color 180ms ease;
+  transition: color 120ms ease, background-color 120ms ease, border-color 120ms ease;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -121,47 +123,63 @@ summary {
 
 mark {
   background: var(--mark);
-  color: var(--mark-ink);
-  padding: 0.05em 0.15em;
+  color: var(--mark-text);
   border-radius: 2px;
+  padding: 0 0.1em;
 }
 
-/*
- * Overline：小号、宽字距的分节标签。
- * 这是编辑排版里最小成本的质感来源 —— 它让"最近更新"从一个普通小标题
- * 变成一条有意为之的分节线索。中文没有大小写，改用字距来达成同样的节奏。
- */
-.overline {
-  font-family: var(--font-sans);
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--ink-faint);
+/* 侧边栏文件树的行：紧凑、整行可点、hover 出背景 —— 文件管理器的手感 */
+.tree-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 30px;
+  padding: 0 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--text-muted);
 }
 
-/* 界面元素用无衬线，与正文的衬线形成分工 */
-.ui-text {
-  font-family: var(--font-sans);
+.tree-row:hover {
+  background: var(--bg-hover);
+  color: var(--text);
 }
 
-/* 细分隔线：比 1px 实线更轻，避免把安静的页面切碎 */
-.rule {
-  border: 0;
-  border-top: 1px solid var(--line);
+.tree-row[aria-current="page"] {
+  background: var(--bg-active);
+  color: var(--text);
+  font-weight: 500;
+}
+
+/* 折叠三角：跟随 <details> 的开合旋转 */
+.tree-caret {
+  width: 0.7rem;
+  height: 0.7rem;
+  flex-shrink: 0;
+  color: var(--text-faint);
+  transition: transform 120ms ease;
+}
+
+details[open] > summary .tree-caret {
+  transform: rotate(90deg);
+}
+
+summary::-webkit-details-marker {
+  display: none;
 }
 
 /* ─── 正文排版 ─────────────────────────────────────────────────── */
 
 .prose {
-  font-size: 1.0625rem;
-  line-height: 1.9;
-  letter-spacing: 0.01em;
+  font-size: 0.9375rem;
+  line-height: 1.75;
+  color: var(--text);
   word-break: break-word;
 }
 
 .prose > * + * {
-  margin-top: 1.3em;
+  margin-top: 1.1em;
 }
 
 .prose h1,
@@ -169,211 +187,157 @@ mark {
 .prose h3,
 .prose h4 {
   font-weight: 600;
-  line-height: 1.35;
-  letter-spacing: -0.01em;
-  scroll-margin-top: 5rem;
+  line-height: 1.4;
+  color: var(--text);
+  scroll-margin-top: 1.5rem;
 }
 
 .prose h1 {
-  font-size: 1.75rem;
-  margin-top: 2.2em;
+  font-size: 1.5rem;
+  margin-top: 2em;
 }
 
-/* 二级标题用一条短前缀线代替整条下划线，安静但有结构 */
 .prose h2 {
-  font-size: 1.375rem;
-  margin-top: 2.4em;
-  padding-top: 1.2em;
-  border-top: 1px solid var(--line);
+  font-size: 1.25rem;
+  margin-top: 2em;
 }
 
 .prose h3 {
-  font-size: 1.125rem;
-  margin-top: 1.8em;
+  font-size: 1.0625rem;
+  margin-top: 1.6em;
 }
 
 .prose h4 {
-  font-size: 1rem;
-  margin-top: 1.5em;
-  color: var(--ink-muted);
+  font-size: 0.9375rem;
+  margin-top: 1.4em;
+  color: var(--text-muted);
 }
 
 .prose a {
   color: var(--accent);
-  text-decoration: underline;
-  text-underline-offset: 0.22em;
-  text-decoration-thickness: 1px;
-  text-decoration-color: color-mix(in srgb, var(--accent) 40%, transparent);
+  text-decoration: none;
 }
 
 .prose a:hover {
   color: var(--accent-hover);
-  text-decoration-color: currentColor;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
 }
 
 .prose strong {
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .prose ul,
 .prose ol {
-  padding-left: 1.3em;
+  padding-left: 1.5em;
 }
 
 .prose ul {
-  list-style: none;
-}
-
-/* 自定义项目符号：小方块比圆点更贴合印刷感 */
-.prose ul > li {
-  position: relative;
-}
-
-.prose ul > li::before {
-  content: "";
-  position: absolute;
-  left: -1.1em;
-  top: 0.82em;
-  width: 4px;
-  height: 4px;
-  background: var(--line-strong);
+  list-style: disc;
 }
 
 .prose ol {
   list-style: decimal;
 }
 
-.prose ol::marker,
 .prose li::marker {
-  color: var(--ink-faint);
+  color: var(--text-faint);
 }
 
 .prose li + li {
-  margin-top: 0.5em;
+  margin-top: 0.35em;
 }
 
 .prose li > ul,
 .prose li > ol {
-  margin-top: 0.5em;
+  margin-top: 0.35em;
 }
 
-/* Pull quote：放大、衬线斜体、左侧粗线 */
 .prose blockquote {
-  border-left: 2px solid var(--accent);
-  padding: 0.2em 0 0.2em 1.2em;
-  color: var(--ink-muted);
-  font-style: italic;
-  font-size: 1.09em;
-  line-height: 1.75;
-}
-
-.prose blockquote p {
-  margin-top: 0.6em;
-}
-
-.prose blockquote p:first-child {
-  margin-top: 0;
+  border-left: 3px solid var(--border-strong);
+  padding-left: 1em;
+  color: var(--text-muted);
 }
 
 .prose hr {
   border: 0;
-  border-top: 1px solid var(--line);
-  margin: 3em auto;
-  width: 40%;
+  border-top: 1px solid var(--border);
+  margin: 2em 0;
 }
 
 .prose code {
   font-family: var(--font-mono);
   font-size: 0.85em;
-  background: var(--paper-sunken);
-  border: 1px solid var(--line);
-  padding: 0.12em 0.4em;
+  background: var(--bg-code);
+  padding: 0.15em 0.35em;
   border-radius: 3px;
 }
 
 .prose pre {
-  background: var(--paper-sunken);
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  padding: 1em 1.15em;
+  background: var(--bg-code);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 0.85em 1em;
   overflow-x: auto;
   font-size: 0.8125rem;
-  line-height: 1.7;
+  line-height: 1.65;
 }
 
 .prose pre code {
   background: none;
-  border: 0;
   padding: 0;
   font-size: inherit;
 }
 
 .prose .table-scroll {
   overflow-x: auto;
-  border: 1px solid var(--line);
-  border-radius: 4px;
 }
 
 .prose table {
   border-collapse: collapse;
-  font-family: var(--font-sans);
   font-size: 0.875rem;
   min-width: 100%;
 }
 
 .prose th,
 .prose td {
-  border-bottom: 1px solid var(--line);
-  border-right: 1px solid var(--line);
-  padding: 0.6em 0.85em;
+  border: 1px solid var(--border);
+  padding: 0.45em 0.7em;
   text-align: left;
   line-height: 1.6;
 }
 
-.prose th:last-child,
-.prose td:last-child {
-  border-right: 0;
-}
-
-.prose tbody tr:last-child td {
-  border-bottom: 0;
-}
-
 .prose th {
-  background: var(--paper-sunken);
+  background: var(--bg-code);
   font-weight: 600;
   white-space: nowrap;
-  color: var(--ink-muted);
 }
 
 .prose img {
   max-width: 100%;
   height: auto;
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
-/* 首字下沉：只作用于正文第一段，且只在够宽的屏幕上 */
-@media (min-width: 640px) {
-  .prose-dropcap > p:first-child::first-letter {
-    float: left;
-    font-size: 3.1em;
-    line-height: 0.92;
-    font-weight: 600;
-    margin: 0.02em 0.12em 0 0;
-    color: var(--accent);
-  }
-}
-
-/* wikilink 与它的两种降级形态 */
 .prose a.wikilink {
-  text-decoration-style: dotted;
-  text-decoration-thickness: 1.5px;
-  text-underline-offset: 0.25em;
+  color: var(--accent);
+}
+
+.prose a.wikilink::before {
+  content: "[[";
+  opacity: 0.4;
+}
+
+.prose a.wikilink::after {
+  content: "]]";
+  opacity: 0.4;
 }
 
 .prose .wikilink-missing,
 .prose .wikilink-ambiguous {
-  color: var(--ink-faint);
-  border-bottom: 1px dotted var(--ink-faint);
+  color: var(--text-faint);
+  text-decoration: underline dotted;
+  text-underline-offset: 0.2em;
   cursor: help;
 }

@@ -1,18 +1,18 @@
 import Link from "next/link";
 
-/** 标签用前缀井号而不是胶囊边框：更接近笔记里原本的写法，也更安静 */
+/** 标签：保留笔记里原本的 #写法，配一层很淡的底色 */
 export function TagList({ tags, className = "" }: { tags: string[]; className?: string }) {
   if (tags.length === 0) return null;
 
   return (
-    <ul className={"ui-text flex flex-wrap items-center gap-x-2.5 gap-y-1.5 " + className}>
+    <ul className={"flex flex-wrap items-center gap-1.5 " + className}>
       {tags.map((tag) => (
         <li key={tag}>
           <Link
             href={`/tag/${encodeURIComponent(tag)}`}
-            className="text-xs text-ink-faint hover:text-accent"
+            className="inline-block rounded bg-bg-code px-1.5 py-0.5 text-xs text-text-muted hover:text-accent"
           >
-            <span aria-hidden="true" className="mr-px opacity-60">
+            <span aria-hidden="true" className="opacity-50">
               #
             </span>
             {tag}

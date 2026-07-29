@@ -13,62 +13,53 @@ export default async function HomePage() {
   const index = await getIndex();
 
   return (
-    <div className="space-y-14">
-      {/* 报头下方的引言与检索：整页唯一的大字号区域 */}
+    <div className="space-y-9">
       <section>
-        <p className="max-w-[34ch] text-[1.375rem] leading-relaxed text-ink sm:text-[1.5rem]">
-          {getSiteDescription()}
-        </p>
-        <div className="mt-7 max-w-xl">
+        <p className="text-sm text-text-muted">{getSiteDescription()}</p>
+        <div className="mt-3 max-w-md">
           <SearchBox />
         </div>
       </section>
 
-      <section aria-labelledby="recent-heading" className="space-y-1">
+      <section aria-labelledby="recent-heading">
         <SectionHeading id="recent-heading">最近更新</SectionHeading>
 
         {index.notes.length === 0 ? (
-          <p className="py-10 text-[0.9375rem] text-ink-muted">知识库里还没有笔记。</p>
+          <p className="py-8 text-sm text-text-muted">知识库里还没有笔记。</p>
         ) : (
-          <div>
-            {index.notes.slice(0, RECENT_LIMIT).map((note, i) => (
-              <NoteCard key={note.id} note={note} index={i + 1} />
+          <ul className="divide-y divide-border">
+            {index.notes.slice(0, RECENT_LIMIT).map((note) => (
+              <NoteCard key={note.id} note={note} />
             ))}
-          </div>
+          </ul>
         )}
       </section>
 
-      <section aria-labelledby="categories-heading" className="space-y-1">
+      <section aria-labelledby="categories-heading">
         <SectionHeading id="categories-heading">分类</SectionHeading>
 
-        <ul className="grid grid-cols-1 sm:grid-cols-2">
+        <ul className="grid grid-cols-1 gap-1 sm:grid-cols-2">
           {CATEGORIES.map((c) => {
             const notes = index.byCategory.get(c.slug) ?? [];
             const description = index.categoryDescriptions.get(c.slug) ?? c.fallbackDescription;
 
             return (
-              <li key={c.slug} className="border-b border-line">
+              <li key={c.slug}>
                 <Link
                   href={`/category/${c.slug}`}
-                  className="group flex h-full items-baseline gap-3 py-5 pr-4"
+                  className="-mx-3 block rounded px-3 py-2.5 hover:bg-bg-hover"
                 >
-                  <span
-                    aria-hidden="true"
-                    className="mt-1 h-[5px] w-[5px] shrink-0 self-start"
-                    style={{ background: `var(--cat-${c.slug})` }}
-                  />
-                  <span className="min-w-0 flex-1">
-                    <span className="flex items-baseline justify-between gap-3">
-                      <span className="font-semibold text-ink group-hover:text-accent">
-                        {c.name}
-                      </span>
-                      <span className="ui-text shrink-0 text-xs tabular-nums text-ink-faint">
-                        {notes.length}
-                      </span>
-                    </span>
-                    <span className="mt-1 line-clamp-2 block text-[0.875rem] leading-relaxed text-ink-muted">
-                      {description}
-                    </span>
+                  <span className="flex items-center gap-2">
+                    <span
+                      aria-hidden="true"
+                      className="h-[6px] w-[6px] shrink-0 rounded-[1px]"
+                      style={{ background: `var(--cat-${c.slug})` }}
+                    />
+                    <span className="text-[0.875rem] font-medium text-text">{c.name}</span>
+                    <span className="text-xs tabular-nums text-text-faint">{notes.length}</span>
+                  </span>
+                  <span className="mt-0.5 line-clamp-1 block pl-[14px] text-xs text-text-muted">
+                    {description}
                   </span>
                 </Link>
               </li>
@@ -77,33 +68,13 @@ export default async function HomePage() {
         </ul>
       </section>
 
-      <section aria-labelledby="overview-heading" className="space-y-4">
+      <section aria-labelledby="overview-heading">
         <SectionHeading id="overview-heading">概览</SectionHeading>
-
-        <dl className="ui-text flex flex-wrap items-baseline gap-x-8 gap-y-4 pt-1">
-          <div>
-            <dt className="text-xs text-ink-faint">笔记</dt>
-            <dd className="mt-1 font-serif text-2xl tabular-nums text-ink">
-              {index.notes.length}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-xs text-ink-faint">标签</dt>
-            <dd className="mt-1 font-serif text-2xl tabular-nums text-ink">{index.tags.size}</dd>
-          </div>
-          <div>
-            <dt className="text-xs text-ink-faint">最近更新</dt>
-            <dd className="mt-1 font-serif text-2xl text-ink">
-              {index.lastModified ? formatDate(index.lastModified) : "—"}
-            </dd>
-          </div>
-        </dl>
-
-        {index.errors.length > 0 && (
-          <p className="ui-text text-xs text-ink-faint">
-            有 {index.errors.length} 个文件解析失败，已跳过。
-          </p>
-        )}
+        <p className="text-xs text-text-muted">
+          {index.notes.length} 篇笔记 · {index.tags.size} 个标签
+          {index.lastModified > 0 && ` · 最近更新 ${formatDate(index.lastModified)}`}
+          {index.errors.length > 0 && ` · ${index.errors.length} 个文件解析失败已跳过`}
+        </p>
       </section>
     </div>
   );

@@ -26,7 +26,7 @@ export function CopyLinkButton() {
     <button
       type="button"
       onClick={copy}
-      className="ui-text flex min-h-11 cursor-pointer items-center px-2 text-xs text-ink-muted hover:text-accent"
+      className="-mr-2 flex h-9 cursor-pointer items-center rounded px-2 text-xs text-text-muted hover:bg-bg-hover hover:text-text"
     >
       {state === "done" ? "已复制" : state === "failed" ? "复制失败" : "复制链接"}
     </button>

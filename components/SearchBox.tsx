@@ -10,16 +10,16 @@ function SearchIcon({ className }: { className?: string }) {
   return (
     <svg
       className={className}
-      viewBox="0 0 24 24"
+      viewBox="0 0 16 16"
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.6"
+      strokeWidth="1.5"
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
     >
-      <circle cx="11" cy="11" r="7" />
-      <path d="m20 20-3.5-3.5" />
+      <circle cx="7" cy="7" r="4.5" />
+      <path d="m13.5 13.5-3.2-3.2" />
     </svg>
   );
 }
@@ -41,26 +41,19 @@ export function SearchBox({
         搜索笔记
       </label>
       <div className="relative">
-        <SearchIcon
-          className={
-            "pointer-events-none absolute left-0 top-1/2 -translate-y-1/2 text-ink-faint " +
-            (compact ? "h-4 w-4" : "h-[1.15rem] w-[1.15rem]")
-          }
-        />
+        <SearchIcon className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-text-faint" />
         <input
           id={id}
           type="search"
           name="q"
           defaultValue={defaultValue}
           autoFocus={autoFocus}
-          placeholder={compact ? "搜索" : "搜索标题、正文与标签"}
+          placeholder="搜索笔记"
           autoComplete="off"
           className={
-            "ui-text w-full border-0 border-b border-line bg-transparent text-ink " +
-            "placeholder:text-ink-faint focus:border-accent focus:outline-none " +
-            (compact
-              ? "min-h-11 pl-6 pr-1 text-[0.8125rem]"
-              : "min-h-12 pl-8 pr-1 text-base")
+            "w-full rounded border border-border bg-bg pl-8 pr-2.5 text-text " +
+            "placeholder:text-text-faint focus:border-accent focus:outline-none " +
+            (compact ? "h-8 text-[0.8125rem]" : "h-10 text-sm")
           }
         />
       </div>

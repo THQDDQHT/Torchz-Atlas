@@ -5,8 +5,9 @@ import type { Metadata } from "next";
 import { getIndex, createWikilinkResolver } from "@/lib/indexer";
 import { hrefSegmentsToNoteId, resolveNotePath } from "@/lib/paths";
 import { renderNote } from "@/lib/markdown";
-import { CATEGORY_BY_SLUG, getSiteName } from "@/lib/config";
+import { CATEGORY_BY_SLUG } from "@/lib/config";
 import { formatDateTime, toISO } from "@/lib/format";
+import { CategoryBadge } from "@/components/CategoryBadge";
 import { TagList } from "@/components/TagList";
 import { Toc } from "@/components/Toc";
 import { CopyLinkButton } from "@/components/CopyLinkButton";
@@ -59,72 +60,41 @@ export default async function NotePage({ params }: { params: Promise<Params> }) 
   const category = CATEGORY_BY_SLUG.get(note.category);
 
   return (
-    <div>
-      <nav aria-label="面包屑" className="ui-text mb-8 flex items-center gap-1.5 text-xs">
-        <Link href="/" className="text-ink-faint hover:text-accent">
-          {getSiteName()}
-        </Link>
-        <span aria-hidden="true" className="text-ink-faint/50">
-          /
-        </span>
-        <Link href={`/category/${note.category}`} className="text-ink-faint hover:text-accent">
-          {category?.name ?? "分类"}
-        </Link>
-      </nav>
+    <article>
+      <header className="border-b border-border pb-4">
+        <h1 className="text-[1.5rem] font-semibold leading-tight text-text">{note.title}</h1>
 
-      <article>
-        <header>
-          <div className="ui-text overline mb-3 flex items-center gap-2">
-            <span
-              aria-hidden="true"
-              className="inline-block h-[5px] w-[5px]"
-              style={{ background: `var(--cat-${note.category})` }}
-            />
-            {category?.name ?? note.categoryName}
-          </div>
-
-          <h1 className="text-[1.875rem] font-semibold leading-[1.25] tracking-[-0.015em] sm:text-[2.125rem]">
-            {note.title}
-          </h1>
-
-          <div className="ui-text mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-ink-faint">
-            {note.modifiedAt > 0 && (
-              <time dateTime={toISO(note.modifiedAt)}>更新于 {formatDateTime(note.modifiedAt)}</time>
-            )}
-            {note.tags.length > 0 && <TagList tags={note.tags} />}
-          </div>
-        </header>
-
-        <hr className="rule mt-7" />
-
-        {toc.length > 0 && (
-          <div className="mt-7">
-            <Toc entries={toc} />
-          </div>
-        )}
-
-        {/*
-          html 来自 rehype-sanitize 的白名单净化输出，是这个应用里唯一使用
-          dangerouslySetInnerHTML 的地方；净化管线见 lib/markdown.ts。
-        */}
-        <div
-          className="prose prose-dropcap mt-9"
-          dangerouslySetInnerHTML={{ __html: html }}
-        />
-      </article>
-
-      <footer className="mt-16">
-        <hr className="rule" />
-        <div className="ui-text -ml-2 mt-2 flex flex-wrap items-center justify-between gap-2">
-          <Link
-            href={`/category/${note.category}`}
-            className="flex min-h-11 items-center px-2 text-xs text-ink-muted hover:text-accent"
-          >
-            ← 返回{category?.name ?? "分类"}
-          </Link>
-          <CopyLinkButton />
+        <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-text-faint">
+          <CategoryBadge slug={note.category} name={note.categoryName} />
+          {note.modifiedAt > 0 && (
+            <time dateTime={toISO(note.modifiedAt)}>{formatDateTime(note.modifiedAt)}</time>
+          )}
         </div>
+
+        {note.tags.length > 0 && <TagList tags={note.tags} className="mt-2.5" />}
+      </header>
+
+      {toc.length > 0 && (
+        <div className="mt-5">
+          <Toc entries={toc} />
+        </div>
+      )}
+
+      {/*
+        html 来自 rehype-sanitize 的白名单净化输出，是这个应用里唯一使用
+        dangerouslySetInnerHTML 的地方；净化管线见 lib/markdown.ts。
+      */}
+      <div className="prose mt-6" dangerouslySetInnerHTML={{ __html: html }} />
+
+      <footer className="mt-12 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3">
+        <Link
+          href={`/category/${note.category}`}
+          className="-ml-2 flex h-9 items-center rounded px-2 text-xs text-text-muted hover:bg-bg-hover hover:text-text"
+        >
+          ← {category?.name ?? "分类"}
+        </Link>
+        <CopyLinkButton />
       </footer>
-    </div>
+    </article>
   );
 }

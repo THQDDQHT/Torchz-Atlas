@@ -1,43 +1,45 @@
 import type { TocEntry } from "@/lib/markdown";
 
-function TocList({ entries }: { entries: TocEntry[] }) {
+function Caret() {
   return (
-    <ol className="ui-text mt-3 space-y-0.5 text-[0.8125rem]">
-      {entries.map((e, i) => (
-        <li key={`${e.id}-${i}`} className={e.depth === 3 ? "pl-4" : ""}>
-          <a
-            href={`#${e.id}`}
-            className="block py-1 leading-snug text-ink-muted hover:text-accent"
-          >
-            {e.text}
-          </a>
-        </li>
-      ))}
-    </ol>
+    <svg
+      className="tree-caret"
+      viewBox="0 0 12 12"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="m4.5 2.5 4 3.5-4 3.5" />
+    </svg>
   );
 }
 
-/**
- * 目录在手机上默认折叠、桌面默认展开。
- *
- * <details open> 的展开状态没法用纯 CSS 按断点切换，所以这里渲染两份并用断点显隐。
- * 目录条目通常只有十几条，重复一份 DOM 的代价远低于为它引入一个客户端组件。
- */
+/** 大纲：默认折叠，标题多的长文才需要展开 */
 export function Toc({ entries }: { entries: TocEntry[] }) {
   if (entries.length === 0) return null;
 
   return (
-    <nav aria-label="文章目录" className="border-l border-line pl-5">
-      <details className="md:hidden">
-        <summary className="overline cursor-pointer list-none marker:content-none">
-          目录（{entries.length}）
+    <nav aria-label="大纲" className="rounded border border-border bg-bg-sidebar">
+      <details>
+        <summary className="flex cursor-pointer list-none items-center gap-1.5 px-3 py-2 text-xs text-text-muted hover:text-text">
+          <Caret />
+          大纲（{entries.length}）
         </summary>
-        <TocList entries={entries} />
-      </details>
-
-      <details open className="hidden md:block">
-        <summary className="overline cursor-pointer list-none marker:content-none">目录</summary>
-        <TocList entries={entries} />
+        <ol className="space-y-0.5 px-3 pb-2.5 pl-6">
+          {entries.map((e, i) => (
+            <li key={`${e.id}-${i}`} className={e.depth === 3 ? "pl-3" : ""}>
+              <a
+                href={`#${e.id}`}
+                className="block truncate py-0.5 text-[0.8125rem] text-text-muted hover:text-accent"
+              >
+                {e.text}
+              </a>
+            </li>
+          ))}
+        </ol>
       </details>
     </nav>
   );

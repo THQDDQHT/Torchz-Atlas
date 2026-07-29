@@ -1,10 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { CATEGORY_BY_SLUG, getSiteName } from "@/lib/config";
+import { CATEGORY_BY_SLUG } from "@/lib/config";
 import { getIndex } from "@/lib/indexer";
 import { NoteCard } from "@/components/NoteCard";
-import { SectionHeading } from "@/components/SectionHeading";
 
 export const dynamic = "force-dynamic";
 
@@ -48,73 +47,60 @@ export default async function CategoryPage({
 
   return (
     <div>
-      <nav aria-label="面包屑" className="ui-text mb-8 text-xs">
-        <Link href="/" className="text-ink-faint hover:text-accent">
-          {getSiteName()}
-        </Link>
-      </nav>
-
-      <header>
-        <div className="ui-text overline mb-3 flex items-center gap-2">
+      <header className="border-b border-border pb-4">
+        <h1 className="flex items-center gap-2 text-[1.375rem] font-semibold text-text">
           <span
             aria-hidden="true"
-            className="inline-block h-[5px] w-[5px]"
+            className="h-[7px] w-[7px] shrink-0 rounded-[1px]"
             style={{ background: `var(--cat-${category.slug})` }}
           />
-          分类
-        </div>
-        <h1 className="text-[1.875rem] font-semibold leading-tight tracking-[-0.015em]">
           {category.name}
         </h1>
-        <p className="mt-3 max-w-[46ch] text-[0.9375rem] leading-relaxed text-ink-muted">
-          {description}
-        </p>
+        <p className="mt-2 text-[0.8125rem] leading-relaxed text-text-muted">{description}</p>
       </header>
 
-      <div className="mt-10 space-y-1">
-        <SectionHeading aside={`${notes.length} 篇`}>
-          <span className="sr-only">笔记列表</span>
-          <span aria-hidden="true">笔记</span>
-        </SectionHeading>
+      <div className="mt-4 flex items-center justify-between gap-3">
+        <span className="text-xs text-text-faint">{notes.length} 篇</span>
 
         {notes.length > 1 && (
-          <nav aria-label="排序方式" className="ui-text -ml-2 flex items-center pt-1 text-xs">
+          <nav aria-label="排序方式" className="flex items-center gap-1 text-xs">
             <Link
               href={`/category/${category.slug}`}
               aria-current={!sortByTitle ? "true" : undefined}
               className={
-                "flex min-h-11 items-center px-2 " +
-                (!sortByTitle ? "text-accent" : "text-ink-faint hover:text-accent")
+                "flex h-8 items-center rounded px-2 " +
+                (!sortByTitle
+                  ? "bg-bg-active text-text"
+                  : "text-text-muted hover:bg-bg-hover hover:text-text")
               }
             >
-              最新修改
+              最近修改
             </Link>
-            <span aria-hidden="true" className="text-ink-faint/40">
-              ·
-            </span>
             <Link
               href={`/category/${category.slug}?sort=title`}
               aria-current={sortByTitle ? "true" : undefined}
               className={
-                "flex min-h-11 items-center px-2 " +
-                (sortByTitle ? "text-accent" : "text-ink-faint hover:text-accent")
+                "flex h-8 items-center rounded px-2 " +
+                (sortByTitle
+                  ? "bg-bg-active text-text"
+                  : "text-text-muted hover:bg-bg-hover hover:text-text")
               }
             >
-              标题 A–Z
+              标题
             </Link>
           </nav>
         )}
-
-        {notes.length === 0 ? (
-          <p className="py-14 text-center text-[0.9375rem] text-ink-muted">{category.emptyText}</p>
-        ) : (
-          <div>
-            {notes.map((note) => (
-              <NoteCard key={note.id} note={note} showCategory={false} />
-            ))}
-          </div>
-        )}
       </div>
+
+      {notes.length === 0 ? (
+        <p className="py-12 text-center text-sm text-text-muted">{category.emptyText}</p>
+      ) : (
+        <ul className="mt-1 divide-y divide-border">
+          {notes.map((note) => (
+            <NoteCard key={note.id} note={note} showCategory={false} />
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
