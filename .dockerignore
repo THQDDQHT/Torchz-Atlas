@@ -1,0 +1,20 @@
+node_modules
+.next
+.git
+.gitignore
+
+# 绝不进镜像：本地环境变量与含服务器细节的私有文档
+.env
+.env.*
+docs
+
+# 测试 fixture 对运行时无用
+tests
+vitest.config.ts
+
+Dockerfile
+.dockerignore
+docker-compose.yaml
+README.md
+.DS_Store
+*.log

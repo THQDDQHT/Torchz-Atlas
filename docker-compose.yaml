@@ -1,0 +1,47 @@
+services:
+  torchz-web:
+    build:
+      context: .
+      args:
+        NPM_REGISTRY: ${NPM_REGISTRY:-https://registry.npmjs.org}
+    image: torchz-atlas:local
+    container_name: torchz-web
+    restart: unless-stopped
+
+    # 必须是能读取知识库文件的 uid:gid。知识库文件属主是谁，这里就填谁。
+    user: "${RUN_AS:?请在 .env 中设置 RUN_AS，例如 10000:10000}"
+
+    # 应用只读知识库，不写任何持久文件，因此根文件系统整体只读
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /app/.next/cache
+
+    security_opt:
+      - no-new-privileges:true
+
+    environment:
+      NODE_ENV: production
+      KNOWLEDGE_DIR: /knowledge
+      DISPLAY_TIMEZONE: ${DISPLAY_TIMEZONE:-Asia/Shanghai}
+      SITE_NAME: ${SITE_NAME:-Torchz}
+      SITE_DESCRIPTION: ${SITE_DESCRIPTION:-个人知识库 · 想法、项目、踩坑与好东西}
+      # 默认 cf-access：配置缺失时服务会拒绝请求，而不是把笔记放出去
+      AUTH_MODE: ${AUTH_MODE:-cf-access}
+      CF_ACCESS_TEAM_DOMAIN: ${CF_ACCESS_TEAM_DOMAIN:-}
+      CF_ACCESS_AUD: ${CF_ACCESS_AUD:-}
+      ALLOW_INSECURE_AUTH: ${ALLOW_INSECURE_AUTH:-}
+
+    volumes:
+      # 只读挂载，容器内无论如何都改不了笔记
+      - ${HOST_KNOWLEDGE_DIR:?请在 .env 中设置 HOST_KNOWLEDGE_DIR}:/knowledge:ro
+
+    # 只绑回环地址，公网入口交给 Cloudflare Tunnel
+    ports:
+      - "${BIND_ADDR:-127.0.0.1}:${BIND_PORT:-8088}:3000"
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
