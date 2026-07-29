@@ -1,5 +1,8 @@
 node_modules
 .next
+.vitepress/cache
+.vitepress/dist
+.vitepress/generated
 .git
 .gitignore
 

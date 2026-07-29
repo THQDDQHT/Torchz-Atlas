@@ -1,94 +1,122 @@
 # Torchz Atlas
 
-一个私有的 Markdown 知识库 Web 浏览器：把服务器上的 Markdown 笔记变成手机上能读的网站，**只读，不改文件**。
+一个只读、私有、手机友好的 Markdown 知识库阅读层。Markdown 文件始终是唯一事实来源，VitePress 负责把它们构建为带目录、全文搜索、深色模式和移动端抽屉的静态站。
 
-Markdown 文件始终是唯一的事实来源，本应用只是它的阅读层——不编辑、不上传、不删除、不写 Git。
+## 功能
 
-## 它做什么
+- VitePress 默认主题：左侧目录、右侧滚动大纲、搜索模态框、明暗切换和移动端导航
+- VitePress + Shiki 代码高亮
+- Obsidian 风格 `[[wikilink]]`，支持唯一命中、缺失、重名三态和同目录优先
+- `#标签` 与 `标签：a、b` 两种标签写法
+- 标签聚合页、反向链接、同分类上一篇/下一篇
+- 文件变化后自动构建；构建失败继续提供上一个成功版本
+- Cloudflare Access 外层保护与源站 JWT 校验
 
-- 按四个固定分类浏览笔记，首页显示最近更新与知识库概览
-- 关键词搜索标题、正文与标签，命中处高亮，查询留在 URL 里
-- 解析 Obsidian 风格的 `[[双向链接]]`，找不到目标时降级成普通文本而不是报错
-- 提取两种标签写法（行内 `#标签` 与 `标签：a、b` 元信息行），按标签聚合笔记
-- 自动生成文章目录，手机上可折叠
-- 深色模式跟随系统
+## 技术结构
 
-## 它不做什么
+```text
+/knowledge（只读 Markdown）
+        ↓
+构建期索引与派生页面
+        ↓
+VitePress 静态站
+        ↓
+JWT 校验静态服务器
+        ↓
+Cloudflare Tunnel + Access
+```
 
-不在网页里编辑、创建、删除笔记；没有多人协作、评论、分享链接、公开博客；没有 AI 总结与向量检索；不引入数据库或全文检索集群。
-
-## 技术栈
-
-Next.js 15 App Router · React 19 · TypeScript · Tailwind CSS 4 · unified/remark/rehype · Vitest
-
-除了一个"复制链接"按钮，所有页面都是服务端渲染的，搜索用普通 GET 表单，没有客户端状态。
-
-## 设计要点
-
-**索引靠目录指纹自动刷新。** 每次请求先 stat 一遍知识库文件，把 路径+mtime+大小 拼成指纹与缓存比对，变了才重建。新增笔记后刷新页面即可见，不需要重启服务，也没有需要你记得去调用的 reindex 接口。
-
-**渲染走白名单净化。** Markdown 里的裸 HTML 不进入渲染树，输出再经 `rehype-sanitize` 的 GitHub schema 过滤；标题锚点、外链的 `rel="noopener noreferrer"`、表格滚动容器都在净化之后才添加，避免被自己的净化步骤清掉。
-
-**路径校验是白名单而非黑名单。** URL 片段先解码再校验（顺序反过来就挡不住编码过的 `../`），必须以已登记的分类目录开头、每段都不是隐藏文件、以 `.md` 结尾，解析结果还要复核仍在知识库根内。
-
-**鉴权失败即关门。** 应用层校验 Cloudflare Access 签发的 JWT，配置缺失或校验失败一律拒绝服务，绝不"放行以免影响使用"。
+原始笔记会不改内容地复制到临时 VitePress 源目录并直接编译。首页、分类页和标签页由索引生成；wikilink 在 Markdown-It 阶段解析；标签、反链和相邻文章通过默认主题插槽显示。
 
 ## 本地开发
 
 ```bash
 npm install
-cp .env.example .env      # 把 KNOWLEDGE_DIR 指向任意 Markdown 目录
+cp .env.example .env
 npm run dev
 ```
 
-仓库自带一份测试用的假知识库（`tests/fixtures/knowledge/`），可以直接拿它当 `KNOWLEDGE_DIR` 跑起来。
+把 `KNOWLEDGE_DIR` 指向知识库目录。开发脚本会监听该目录，内容变化后自动重启 VitePress 开发服务。
 
-本地开发把 `AUTH_MODE` 设为 `none`，此时必须同时设置 `ALLOW_INSECURE_AUTH=true` —— 这个二次确认是有意的，防止关掉鉴权的配置被忘在生产环境里。
+也可以使用仓库测试知识库：
 
 ```bash
-npm test          # 索引、搜索、渲染净化、路径安全
-npm run typecheck
+KNOWLEDGE_DIR="$PWD/tests/fixtures/knowledge" npm run dev
 ```
 
-## 部署
-
-服务只监听回环地址，公网入口由 Cloudflare Tunnel + Cloudflare Access 提供。
+## 验证
 
 ```bash
-cp .env.example .env      # 填写 HOST_KNOWLEDGE_DIR、RUN_AS、CF_ACCESS_* 等
+npm test
+npm run typecheck
+KNOWLEDGE_DIR="$PWD/tests/fixtures/knowledge" npm run build
+```
+
+生产产物默认生成在 `.vitepress/dist/`。本地验证静态服务器：
+
+```bash
+AUTH_MODE=none \
+ALLOW_INSECURE_AUTH=true \
+SITE_DIR="$PWD/.vitepress/dist" \
+npm start
+```
+
+## 生产部署
+
+```bash
+cp .env.example .env
 docker compose up -d --build
 curl http://127.0.0.1:8088/healthz
 ```
 
-几个容易踩的点：
+容器启动时先构建一个完整版本，再启动静态服务器。之后监听 `/knowledge`：
 
-- `RUN_AS` 必须是**能读取知识库文件的 uid:gid**。如果笔记文件权限是 `600`，容器就必须以文件属主的 uid 运行，否则一篇也读不到。
-- 知识库以 `:ro` 挂载，容器根文件系统也是只读的（缓存目录走 tmpfs）。
-- 构建机在国内时传 `NPM_REGISTRY=https://registry.npmmirror.com`，能把装依赖的时间从几分钟压到几秒。
+1. 多个连续文件事件会合并。
+2. 同一时间只执行一个构建。
+3. 新版本构建成功后原子切换。
+4. 构建失败时保留上一个成功版本。
+
+知识库、生成源目录和站点产物彼此分离。知识库仍以只读卷挂载，容器根文件系统仍为只读；临时构建文件写入 `/tmp`，静态版本写入 `/site` 的 tmpfs。
+
+## 鉴权
+
+生产默认使用 `AUTH_MODE=cf-access`。静态服务器会校验：
+
+- `Cf-Access-Jwt-Assertion` 请求头（优先）
+- `CF_Authorization` Cookie（浏览器回退）
+- JWT 签名、issuer 和 audience
+
+鉴权覆盖 HTML、JavaScript、CSS、搜索索引等全部站点文件；只有不包含知识库内容的 `/healthz` 免鉴权。配置缺失或校验失败时服务会拒绝请求。
+
+本地关闭鉴权必须同时设置：
+
+```dotenv
+AUTH_MODE=none
+ALLOW_INSECURE_AUTH=true
+```
+
+## 知识库结构
+
+```text
+知识库根/
+├── 00 灵感想法/
+├── 01 项目/
+├── 02 踩坑记录/
+└── 03 好东西/
+```
+
+只扫描这四个分类中的 Markdown。隐藏文件、非 Markdown、知识库根文件和分类 `README.md` 不作为普通笔记；分类 `README.md` 用作分类说明。
 
 ## 环境变量
 
 | 变量 | 说明 |
 | --- | --- |
-| `KNOWLEDGE_DIR` | 容器内知识库挂载点，默认 `/knowledge` |
+| `KNOWLEDGE_DIR` | 容器内知识库目录，默认 `/knowledge` |
 | `AUTH_MODE` | `cf-access`（默认）或 `none` |
-| `ALLOW_INSECURE_AUTH` | `AUTH_MODE=none` 时必须显式设为 `true` |
-| `CF_ACCESS_TEAM_DOMAIN` | 形如 `your-team.cloudflareaccess.com` |
-| `CF_ACCESS_AUD` | Access 应用的 Application Audience Tag |
-| `SITE_NAME` / `SITE_DESCRIPTION` | 站点标题与副标题 |
-| `DISPLAY_TIMEZONE` | 时间显示时区，默认 `Asia/Shanghai` |
-| `HOST_KNOWLEDGE_DIR` | 宿主机知识库目录（仅 compose 使用） |
-| `RUN_AS` | 容器运行的 `uid:gid`（仅 compose 使用） |
-| `BIND_ADDR` / `BIND_PORT` | 宿主机监听地址与端口，默认 `127.0.0.1:8088` |
-
-## 知识库结构约定
-
-```
-知识库根/
-├── 00 灵感想法/     ideas
-├── 01 项目/         projects
-├── 02 踩坑记录/     lessons
-└── 03 好东西/       good-things
-```
-
-分类是代码里的常量而不是扫描出来的——新增一个分类应当是一次有意识的决定。每个分类目录根层的 `README.md` 作为分类介绍显示，不作为普通笔记参与列表。仓库根的 `README.md`、`CHANGELOG.md`、隐藏文件和非 Markdown 文件都不会被服务。
+| `ALLOW_INSECURE_AUTH` | 使用 `AUTH_MODE=none` 时必须为 `true` |
+| `CF_ACCESS_TEAM_DOMAIN` | Cloudflare Access team domain |
+| `CF_ACCESS_AUD` | Access Application Audience Tag |
+| `SITE_NAME` / `SITE_DESCRIPTION` | 站点标题与说明 |
+| `HOST_KNOWLEDGE_DIR` | 宿主机知识库目录 |
+| `RUN_AS` | 容器运行的 `uid:gid` |
+| `BIND_ADDR` / `BIND_PORT` | 宿主机监听地址和端口 |

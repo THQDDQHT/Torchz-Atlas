@@ -1,13 +1,11 @@
 /**
  * 知识库索引：扫描只读挂载的 Markdown，建立内存中的笔记 / 标签 / 标题索引。
  *
- * 更新策略是"目录指纹比对"而不是启动时一次性索引：每次请求先 stat 一遍文件
- * （几十个文件，成本在微秒级），把 路径+mtime+大小 拼成指纹，与缓存的指纹比对，
- * 一致就直接复用，不一致才重新读文件重建。
+ * 索引只在 VitePress 构建时读取。生产脚本监听知识库目录，检测到 Git 或微信采集
+ * 写入后触发新构建；新版本完整成功后才原子切换，失败则继续提供上一版本。
  *
- * 这样通过 Git 或微信采集流程新增笔记后，刷新页面即可见，不需要重启服务，
- * 也不需要一个带鉴权的 reindex 接口 —— 那个接口最大的问题是你总会忘记调它。
- * 代价：笔记涨到数千篇后 stat 开销会显现，届时该换文件监听。
+ * 进程内仍保留目录指纹缓存，供同一次构建中的配置、页面数据和插件共享索引；
+ * 每次正式构建开始前会主动清空缓存。
  */
 
 import fs from "node:fs/promises";
@@ -19,7 +17,8 @@ import {
   type CategorySlug,
   getKnowledgeDir,
 } from "./config";
-import { parseNoteMeta, type WikilinkResolution } from "./markdown";
+import { parseNoteMeta, type WikilinkResolution } from "./metadata";
+import { noteHref } from "./routes";
 
 export interface Note {
   /** 相对知识库根的路径，同时充当稳定 id。不暴露服务器绝对路径。 */
@@ -293,9 +292,4 @@ export function createWikilinkResolver(index: KnowledgeIndex, fromDir: string) {
 
     return { kind: "ambiguous" };
   };
-}
-
-function noteHref(id: string): string {
-  const withoutExt = id.replace(/\.md$/i, "");
-  return `/note/${withoutExt.split("/").map(encodeURIComponent).join("/")}`;
 }
