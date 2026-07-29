@@ -45,7 +45,34 @@ function deny(reason: string, status = 403): NextResponse {
   });
 }
 
-export async function middleware(request: NextRequest) {
+/**
+ * CSP 必须在这里逐请求生成，而不是写死在 next.config 里。
+ *
+ * App Router 用内联 `<script>self.__next_f.push(...)</script>` 传输 RSC payload，
+ * 所以 `script-src 'self'` 会把页面自己的脚本全拦掉、hydration 失败、页面白屏。
+ * 正确做法是给每个请求发一个 nonce：Next.js 会从请求头里的 CSP 读出 nonce，
+ * 自动打到它生成的每个 script 标签上，笔记正文里的脚本则拿不到 nonce。
+ *
+ * style-src 保留 unsafe-inline：nonce 对 `style="..."` 属性无效，而分类色点用的是
+ * 内联样式。样式注入的危害远小于脚本，且净化管线本就不允许 style 属性进入笔记 HTML。
+ */
+function buildCsp(nonce: string): string {
+  return [
+    "default-src 'self'",
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
+    "style-src 'self' 'unsafe-inline'",
+    // 允许 https 图片，否则笔记里引用的外链图片一律显示不出来
+    "img-src 'self' data: https:",
+    "font-src 'self'",
+    "object-src 'none'",
+    "base-uri 'none'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+  ].join("; ");
+}
+
+/** 鉴权检查：通过返回 null，不通过返回要直接发出的响应 */
+async function checkAuth(request: NextRequest): Promise<NextResponse | null> {
   const mode = env("AUTH_MODE") ?? "cf-access";
 
   if (mode === "none") {
@@ -57,7 +84,7 @@ export async function middleware(request: NextRequest) {
         503,
       );
     }
-    return NextResponse.next();
+    return null;
   }
 
   if (mode !== "cf-access") {
@@ -88,5 +115,22 @@ export async function middleware(request: NextRequest) {
     return deny("Cloudflare Access 身份校验未通过。");
   }
 
-  return NextResponse.next();
+  return null;
+}
+
+export async function middleware(request: NextRequest) {
+  const denied = await checkAuth(request);
+  if (denied) return denied;
+
+  const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
+  const csp = buildCsp(nonce);
+
+  // Next.js 从请求头里的 CSP 提取 nonce，用于它自己注入的 script 标签
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-nonce", nonce);
+  requestHeaders.set("Content-Security-Policy", csp);
+
+  const response = NextResponse.next({ request: { headers: requestHeaders } });
+  response.headers.set("Content-Security-Policy", csp);
+  return response;
 }

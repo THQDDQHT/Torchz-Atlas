@@ -11,6 +11,7 @@ const nextConfig: NextConfig = {
 
   poweredByHeader: false,
 
+  // CSP 不在这里设置：它需要逐请求生成 nonce，见 middleware.ts
   async headers() {
     return [
       {
@@ -19,19 +20,6 @@ const nextConfig: NextConfig = {
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "X-Frame-Options", value: "DENY" },
           { key: "Referrer-Policy", value: "no-referrer" },
-          // 私有阅读站不需要任何外部资源；脚本策略与"零客户端 JS"一致
-          {
-            key: "Content-Security-Policy",
-            value: [
-              "default-src 'self'",
-              "img-src 'self' data:",
-              "style-src 'self' 'unsafe-inline'",
-              "script-src 'self'",
-              "frame-ancestors 'none'",
-              "base-uri 'none'",
-              "form-action 'self'",
-            ].join("; "),
-          },
         ],
       },
     ];
