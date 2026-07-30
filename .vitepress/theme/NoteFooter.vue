@@ -21,7 +21,6 @@ const metadata = computed<AtlasMetadata | null>(() => frontmatter.value.atlas ??
 <template>
   <div v-if="metadata" class="atlas-note-footer">
     <div class="atlas-note-taxonomy">
-      <span class="atlas-taxonomy-label">收录于</span>
       <a class="atlas-category" :href="metadata.category.href">{{ metadata.category.name }}</a>
       <a
         v-for="tag in metadata.tags"

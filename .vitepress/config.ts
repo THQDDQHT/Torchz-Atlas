@@ -17,49 +17,6 @@ const cacheDir = path.resolve(
 );
 const prepared = await prepareSiteSource(sourceDir);
 
-/**
- * MiniSearch 默认按非字母数字切词，中文整段正文会变成一个 token，导致搜不到。
- * 这里把中日韩连续字串切成单字 + 二元组，拉丁字母与数字仍按词切分。
- *
- * 注意:正则必须定义在函数体内。VitePress 会把 themeConfig 中的函数序列化后
- * 在浏览器端用 new Function() 重建,函数引用的模块作用域变量在浏览器里都不存在。
- */
-function tokenizeCjk(text: string): string[] {
-  const CJK_CHAR = /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/;
-  const WORD_CHAR = /[\p{L}\p{N}_]/u;
-  const tokens: string[] = [];
-  let cjkRun = "";
-  let wordRun = "";
-
-  const flushCjk = () => {
-    for (let i = 0; i < cjkRun.length; i++) {
-      tokens.push(cjkRun[i]);
-      if (i + 1 < cjkRun.length) tokens.push(cjkRun.slice(i, i + 2));
-    }
-    cjkRun = "";
-  };
-  const flushWord = () => {
-    if (wordRun) tokens.push(wordRun);
-    wordRun = "";
-  };
-
-  for (const char of text) {
-    if (CJK_CHAR.test(char)) {
-      flushWord();
-      cjkRun += char;
-    } else if (WORD_CHAR.test(char)) {
-      flushCjk();
-      wordRun += char;
-    } else {
-      flushCjk();
-      flushWord();
-    }
-  }
-  flushCjk();
-  flushWord();
-  return tokens;
-}
-
 export default defineConfig({
   lang: "zh-CN",
   title: getSiteName(),
@@ -68,7 +25,7 @@ export default defineConfig({
   outDir,
   cacheDir,
   cleanUrls: true,
-  lastUpdated: true,
+  lastUpdated: false,
   appearance: true,
   head: [
     ["meta", { name: "robots", content: "noindex,nofollow,noarchive" }],
@@ -76,7 +33,7 @@ export default defineConfig({
   ],
   markdown: {
     theme: { light: "github-light", dark: "github-dark-dimmed" },
-    lineNumbers: false,
+    lineNumbers: true,
     config(markdown) {
       wikilinkPlugin(markdown, prepared.index);
     },
@@ -91,14 +48,6 @@ export default defineConfig({
     search: {
       provider: "local",
       options: {
-        miniSearch: {
-          options: {
-            tokenize: tokenizeCjk,
-          },
-          searchOptions: {
-            combineWith: "AND",
-          },
-        },
         translations: {
           button: {
             buttonText: "搜索",
