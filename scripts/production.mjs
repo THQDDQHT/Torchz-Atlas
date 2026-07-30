@@ -10,6 +10,9 @@ const knowledgeDir = path.resolve(process.env.KNOWLEDGE_DIR || "/knowledge");
 const siteRoot = path.resolve(process.env.SITE_ROOT || "/site");
 const sourceDir = path.resolve(process.env.SITE_SOURCE_DIR || "/tmp/torchz-atlas-source");
 const cacheDir = path.resolve(process.env.VITEPRESS_CACHE_DIR || "/tmp/torchz-atlas-cache");
+const runtimeRoot = path.resolve(
+  process.env.VITEPRESS_RUNTIME_ROOT || "/tmp/torchz-atlas-runtime",
+);
 const currentLink = path.join(siteRoot, "current");
 const vitepressBin = path.join(projectRoot, "node_modules", "vitepress", "bin", "vitepress.js");
 
@@ -19,9 +22,33 @@ let buildTimer;
 let serverProcess;
 let stopping = false;
 
+async function prepareRuntimeRoot() {
+  const temporaryRoot = path.resolve("/tmp");
+  if (
+    !runtimeRoot.startsWith(`${temporaryRoot}${path.sep}`) ||
+    !path.basename(runtimeRoot).startsWith("torchz-atlas")
+  ) {
+    throw new Error(`拒绝使用未登记的 VitePress 运行目录：${runtimeRoot}`);
+  }
+
+  const vitepressRoot = path.join(runtimeRoot, ".vitepress");
+  const configWrapper = path.join(vitepressRoot, "config.mjs");
+  const themeLink = path.join(vitepressRoot, "theme");
+  const configPath = path.join(projectRoot, ".vitepress", "config.ts");
+
+  await fs.mkdir(vitepressRoot, { recursive: true });
+  await fs.writeFile(
+    configWrapper,
+    `export { default } from ${JSON.stringify(configPath)};\n`,
+    "utf8",
+  );
+  await fs.rm(themeLink, { recursive: true, force: true });
+  await fs.symlink(path.join(projectRoot, ".vitepress", "theme"), themeLink, "dir");
+}
+
 async function runBuild(outputDirectory) {
   return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, [vitepressBin, "build", projectRoot], {
+    const child = spawn(process.execPath, [vitepressBin, "build", runtimeRoot], {
       cwd: projectRoot,
       env: {
         ...process.env,
@@ -115,6 +142,7 @@ const watcher = chokidar.watch(knowledgeDir, {
 watcher.on("all", scheduleBuild);
 await new Promise((resolve) => watcher.once("ready", resolve));
 
+await prepareRuntimeRoot();
 await fs.mkdir(siteRoot, { recursive: true });
 await buildAndActivate();
 

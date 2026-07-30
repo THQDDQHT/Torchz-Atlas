@@ -6,6 +6,7 @@ ENV NODE_ENV=production \
     HOSTNAME=0.0.0.0 \
     SITE_ROOT=/site \
     SITE_SOURCE_DIR=/tmp/torchz-atlas-source \
+    VITEPRESS_RUNTIME_ROOT=/tmp/torchz-atlas-runtime \
     VITEPRESS_CACHE_DIR=/tmp/torchz-atlas-cache
 
 ARG NPM_REGISTRY=https://registry.npmjs.org
