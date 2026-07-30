@@ -125,6 +125,10 @@ export default defineConfig({
       ],
     },
     server: {
+      watch: {
+        usePolling: true,
+        interval: 500,
+      },
       fs: {
         allow: [projectRoot, getKnowledgeDir(), sourceDir],
       },

@@ -7,13 +7,14 @@ import chokidar from "chokidar";
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const knowledgeDir = path.resolve(process.env.KNOWLEDGE_DIR || "/knowledge");
 const vitepressBin = path.join(projectRoot, "node_modules", "vitepress", "bin", "vitepress.js");
+const vitepressArgs = process.argv.slice(2);
 
 let child;
 let restartTimer;
 let stopping = false;
 
 function start() {
-  child = spawn(process.execPath, [vitepressBin, "dev", projectRoot], {
+  child = spawn(process.execPath, [vitepressBin, "dev", projectRoot, ...vitepressArgs], {
     cwd: projectRoot,
     env: process.env,
     stdio: "inherit",
@@ -39,6 +40,8 @@ function restart() {
 
 const watcher = chokidar.watch(knowledgeDir, {
   ignoreInitial: true,
+  usePolling: true,
+  interval: 500,
   awaitWriteFinish: { stabilityThreshold: 200, pollInterval: 50 },
 });
 watcher.on("all", restart);
