@@ -22,14 +22,15 @@ Markdown 文件始终是唯一事实来源；Atlas 不引入数据库、不编�
 
 - 知识库固定分为「灵感想法」「项目」「踩坑记录」「好东西」四类。
 - 内容通过只读卷挂载到服务中。
-- 公网入口经过 Cloudflare Tunnel 与 Cloudflare Access。
+- 公网入口经过 Cloudflare Tunnel，应用自身负责密码认证；需要时也可切换为 Cloudflare Access JWT。
 - 原始笔记由用户本人编写，可作为可信 VitePress 源文件直接编译。
 
 ## Capabilities and Constraints
 
 - 支持全文搜索、标签聚合、三态 wikilink、同目录优先消歧和反向链接。
 - 生产内容更新通过文件监听触发静态站重建；失败时继续提供上一个成功版本。
-- Cloudflare Access 之外，源站必须再次校验 Access JWT。
+- 密码模式从服务器环境变量读取密码，并用安全 Cookie 保持登录会话。
+- 可选 Cloudflare Access JWT 模式；任何生产鉴权配置缺失时都必须拒绝访问。
 - 应用只读知识库，不创建、编辑或删除笔记。
 
 ## Brand Commitments

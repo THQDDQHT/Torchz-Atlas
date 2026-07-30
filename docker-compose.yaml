@@ -26,8 +26,10 @@ services:
       DISPLAY_TIMEZONE: ${DISPLAY_TIMEZONE:-Asia/Shanghai}
       SITE_NAME: ${SITE_NAME:-Torchz}
       SITE_DESCRIPTION: ${SITE_DESCRIPTION:-个人知识库 · 想法、项目、踩坑与好东西}
-      # 默认 cf-access：配置缺失时服务会拒绝请求，而不是把笔记放出去
-      AUTH_MODE: ${AUTH_MODE:-cf-access}
+      # 默认 password：密码缺失时服务会拒绝请求，而不是把笔记放出去
+      AUTH_MODE: ${AUTH_MODE:-password}
+      AUTH_PASSWORD: ${AUTH_PASSWORD:-}
+      AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE:-true}
       CF_ACCESS_TEAM_DOMAIN: ${CF_ACCESS_TEAM_DOMAIN:-}
       CF_ACCESS_AUD: ${CF_ACCESS_AUD:-}
       ALLOW_INSECURE_AUTH: ${ALLOW_INSECURE_AUTH:-}

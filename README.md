@@ -10,7 +10,7 @@
 - `#标签` 与 `标签：a、b` 两种标签写法
 - 标签聚合页、反向链接、同分类上一篇/下一篇
 - 文件变化后自动构建；构建失败继续提供上一个成功版本
-- Cloudflare Access 外层保护与源站 JWT 校验
+- 应用密码登录；也可切换为 Cloudflare Access JWT 校验
 
 ## 技术结构
 
@@ -21,9 +21,9 @@
         ↓
 VitePress 静态站
         ↓
-JWT 校验静态服务器
+带密码登录的静态服务器
         ↓
-Cloudflare Tunnel + Access
+Cloudflare Tunnel
 ```
 
 原始笔记会不改内容地复制到临时 VitePress 源目录并直接编译。首页、分类页和标签页由索引生成；wikilink 在 Markdown-It 阶段解析；标签、反链和相邻文章通过默认主题插槽显示。
@@ -80,13 +80,32 @@ curl http://127.0.0.1:8088/healthz
 
 ## 鉴权
 
-生产默认使用 `AUTH_MODE=cf-access`。静态服务器会校验：
+个人部署默认使用 `AUTH_MODE=password`：
+
+- 密码从服务器环境变量 `AUTH_PASSWORD` 读取，不写入仓库或页面。
+- 登录成功后使用 `HttpOnly`、`Secure`、`SameSite=Lax` Cookie 保持 30 天。
+- 连续登录失败会触发限速。
+- 鉴权覆盖 HTML、JavaScript、CSS、搜索索引等全部站点文件。
+
+```dotenv
+AUTH_MODE=password
+AUTH_PASSWORD='请填写高强度密码'
+AUTH_COOKIE_SECURE=true
+```
+
+修改服务器上的 `.env` 后，重新创建容器让新环境变量生效：
+
+```bash
+docker compose up -d --force-recreate
+```
+
+需要使用 Cloudflare Access 时，可切换为 `AUTH_MODE=cf-access`。静态服务器会校验：
 
 - `Cf-Access-Jwt-Assertion` 请求头（优先）
 - `CF_Authorization` Cookie（浏览器回退）
 - JWT 签名、issuer 和 audience
 
-鉴权覆盖 HTML、JavaScript、CSS、搜索索引等全部站点文件；只有不包含知识库内容的 `/healthz` 免鉴权。配置缺失或校验失败时服务会拒绝请求。
+只有不包含知识库内容的 `/healthz` 免鉴权。任何鉴权模式配置缺失或校验失败时，服务都会拒绝请求。
 
 本地关闭鉴权必须同时设置：
 
@@ -112,7 +131,9 @@ ALLOW_INSECURE_AUTH=true
 | 变量 | 说明 |
 | --- | --- |
 | `KNOWLEDGE_DIR` | 容器内知识库目录，默认 `/knowledge` |
-| `AUTH_MODE` | `cf-access`（默认）或 `none` |
+| `AUTH_MODE` | `password`（默认）、`cf-access` 或 `none` |
+| `AUTH_PASSWORD` | `password` 模式的访问密码 |
+| `AUTH_COOKIE_SECURE` | 登录 Cookie 是否仅通过 HTTPS 发送，生产保持 `true` |
 | `ALLOW_INSECURE_AUTH` | 使用 `AUTH_MODE=none` 时必须为 `true` |
 | `CF_ACCESS_TEAM_DOMAIN` | Cloudflare Access team domain |
 | `CF_ACCESS_AUD` | Access Application Audience Tag |
