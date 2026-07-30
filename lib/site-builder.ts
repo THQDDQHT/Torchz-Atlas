@@ -228,12 +228,12 @@ export function notePageData(index: KnowledgeIndex, page: PageData): Partial<Pag
   const older = position >= 0 && position < siblings.length - 1 ? siblings[position + 1] : null;
 
   return {
-    lastUpdated: note.modifiedAt,
     frontmatter: {
       ...page.frontmatter,
       prev: newer ? { text: newer.title, link: noteHref(newer.id) } : false,
       next: older ? { text: older.title, link: noteHref(older.id) } : false,
       atlas: {
+        updatedAt: note.modifiedAt,
         category: {
           name: note.categoryName,
           href: `/category/${note.category}`,

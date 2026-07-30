@@ -68,7 +68,10 @@ export default defineConfig({
   outDir,
   cacheDir,
   cleanUrls: true,
-  lastUpdated: true,
+  // 不能开:VitePress 的 lastUpdated 会对每个文件 spawn git log,
+  // 而生成源目录不是 git 仓库,容器镜像里也没有 git。更新时间由
+  // notePageData 写入 frontmatter.atlas.updatedAt,在 NoteFooter 中渲染。
+  lastUpdated: false,
   appearance: true,
   head: [
     ["meta", { name: "robots", content: "noindex,nofollow,noarchive" }],
@@ -124,14 +127,6 @@ export default defineConfig({
     sidebarMenuLabel: "目录",
     returnToTopLabel: "返回顶部",
     skipToContentLabel: "跳到正文",
-    lastUpdated: {
-      text: "最后更新",
-      formatOptions: {
-        dateStyle: "medium",
-        timeStyle: "short",
-        forceLocale: true,
-      },
-    },
     docFooter: {
       prev: "较新的笔记",
       next: "较早的笔记",

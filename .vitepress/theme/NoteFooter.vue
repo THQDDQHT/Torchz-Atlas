@@ -9,6 +9,7 @@ interface LinkItem {
 }
 
 interface AtlasMetadata {
+  updatedAt?: number;
   category: { name: string; href: string };
   tags: LinkItem[];
   backlinks: LinkItem[];
@@ -16,10 +17,21 @@ interface AtlasMetadata {
 
 const { frontmatter } = useData();
 const metadata = computed<AtlasMetadata | null>(() => frontmatter.value.atlas ?? null);
+
+const updatedAtText = computed(() => {
+  const updatedAt = metadata.value?.updatedAt;
+  if (!updatedAt) return null;
+  return new Intl.DateTimeFormat("zh-CN", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(updatedAt));
+});
 </script>
 
 <template>
   <div v-if="metadata" class="atlas-note-footer">
+    <p v-if="updatedAtText" class="atlas-updated-at">最后更新于 {{ updatedAtText }}</p>
+
     <div class="atlas-note-taxonomy">
       <span class="atlas-taxonomy-label">收录于</span>
       <a class="atlas-category" :href="metadata.category.href">{{ metadata.category.name }}</a>

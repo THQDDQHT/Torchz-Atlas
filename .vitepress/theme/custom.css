@@ -213,6 +213,12 @@
   gap: 8px;
 }
 
+.atlas-updated-at {
+  margin: 0 0 12px;
+  color: var(--vp-c-text-3);
+  font-size: 13px;
+}
+
 .atlas-taxonomy-label {
   margin-right: 2px;
   color: var(--vp-c-text-3);
