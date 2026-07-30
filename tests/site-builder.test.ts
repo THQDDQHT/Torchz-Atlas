@@ -60,7 +60,7 @@ describe("VitePress 源目录生成", () => {
     });
 
     const atlas = data?.frontmatter?.atlas;
-    expect(atlas.updatedAt).toBeGreaterThan(0);
+    expect(data?.lastUpdated).toBeGreaterThan(0);
     expect(atlas.tags).toEqual(
       expect.arrayContaining([{ name: "排版", href: "/tag/%E6%8E%92%E7%89%88" }]),
     );
