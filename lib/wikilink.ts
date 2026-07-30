@@ -54,9 +54,15 @@ export function wikilinkPlugin(markdownInstance: unknown, index: KnowledgeIndex)
           const token = state.push("html_inline", "", 0);
           const className =
             resolution.kind === "ambiguous" ? "wikilink-ambiguous" : "wikilink-missing";
-          token.content = `<span class="${className}">${markdown.utils.escapeHtml(
-            state.src.slice(start, close + 2),
-          )}</span>`;
+          const hint =
+            resolution.kind === "ambiguous"
+              ? "有多个同名笔记,无法确定指向哪一篇"
+              : "这篇笔记还不存在";
+          token.content =
+            `<span class="${className}" title="${hint}" aria-label="${hint}:` +
+            `${markdown.utils.escapeHtml(target)}">${markdown.utils.escapeHtml(
+              state.src.slice(start, close + 2),
+            )}</span>`;
         }
       }
 

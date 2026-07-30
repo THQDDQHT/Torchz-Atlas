@@ -36,6 +36,40 @@ function markdownText(value: string): string {
   return value.replace(/([\\`*_[\]<>])/g, "\\$1");
 }
 
+/** 生成页中的列表与标签使用原生 HTML（markdown 块内不再解析），需要 HTML 转义 */
+function escapeHtml(value: string): string {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
+}
+
+function noteItem(note: Note): string {
+  return [
+    `<a class="atlas-note-item" href="${escapeHtml(noteHref(note.id))}">`,
+    `<span class="atlas-note-item-title">${escapeHtml(note.title)}</span>`,
+    `<span class="atlas-note-item-summary">${escapeHtml(note.summary)}</span>`,
+    `</a>`,
+  ].join("");
+}
+
+function noteList(notes: Note[]): string {
+  return `<div class="atlas-note-list">\n${notes.map(noteItem).join("\n")}\n</div>`;
+}
+
+function tagCapsules(index: KnowledgeIndex): string {
+  const sorted = [...index.tags.entries()].sort(([a], [b]) => a.localeCompare(b, "zh-CN"));
+  const capsules = sorted
+    .map(
+      ([tag, notes]) =>
+        `<a class="atlas-tag" href="${escapeHtml(tagHref(tag))}">#${escapeHtml(tag)}` +
+        `<span class="atlas-tag-count">${notes.length}</span></a>`,
+    )
+    .join("\n");
+  return `<div class="atlas-tag-list">\n${capsules}\n</div>`;
+}
+
 function frontmatter(title: string, extra: string[] = []): string {
   return [
     "---",
@@ -49,30 +83,28 @@ function frontmatter(title: string, extra: string[] = []): string {
   ].join("\n");
 }
 
-function noteLine(note: Note): string {
-  return `- [${markdownText(note.title)}](${noteHref(note.id)}) — ${markdownText(note.summary)}`;
-}
-
 function buildHome(index: KnowledgeIndex): string {
   const recent =
     index.notes.length > 0
-      ? index.notes.slice(0, RECENT_LIMIT).map(noteLine).join("\n")
+      ? noteList(index.notes.slice(0, RECENT_LIMIT))
       : "知识库里还没有笔记。";
 
-  const categories = CATEGORIES.map((category) => {
+  const categories = `<div class="atlas-cat-list">\n${CATEGORIES.map((category) => {
     const count = index.byCategory.get(category.slug)?.length ?? 0;
     const description =
       index.categoryDescriptions.get(category.slug) ?? category.fallbackDescription;
-    return `- [${category.name}](/category/${category.slug}) · ${count} 篇\n  ${markdownText(description)}`;
-  }).join("\n");
+    return [
+      `<a class="atlas-cat-item" href="/category/${category.slug}">`,
+      `<span class="atlas-cat-item-head">`,
+      `<span class="atlas-cat-item-name">${escapeHtml(category.name)}</span>`,
+      `<span class="atlas-cat-item-count">${count} 篇</span>`,
+      `</span>`,
+      `<span class="atlas-cat-item-desc">${escapeHtml(description)}</span>`,
+      `</a>`,
+    ].join("");
+  }).join("\n")}\n</div>`;
 
-  const tags =
-    index.tags.size > 0
-      ? [...index.tags.entries()]
-          .sort(([a], [b]) => a.localeCompare(b, "zh-CN"))
-          .map(([tag, notes]) => `[${markdownText(tag)}](${tagHref(tag)}) · ${notes.length}`)
-          .join("　")
-      : "还没有标签。";
+  const tags = index.tags.size > 0 ? tagCapsules(index) : "还没有标签。";
 
   return [
     frontmatter(getSiteName(), ["aside: false"]),
@@ -94,7 +126,7 @@ function buildHome(index: KnowledgeIndex): string {
     "",
     "---",
     "",
-    `${index.notes.length} 篇笔记 · ${index.tags.size} 个标签`,
+    `<p class="atlas-home-stats">${index.notes.length} 篇笔记 · ${index.tags.size} 个标签</p>`,
     "",
   ].join("\n");
 }
@@ -103,7 +135,7 @@ function buildCategory(index: KnowledgeIndex, category: (typeof CATEGORIES)[numb
   const notes = index.byCategory.get(category.slug) ?? [];
   const description =
     index.categoryDescriptions.get(category.slug) ?? category.fallbackDescription;
-  const list = notes.length > 0 ? notes.map(noteLine).join("\n") : category.emptyText;
+  const list = notes.length > 0 ? noteList(notes) : category.emptyText;
 
   return [
     frontmatter(category.name, ["aside: false"]),
@@ -111,7 +143,7 @@ function buildCategory(index: KnowledgeIndex, category: (typeof CATEGORIES)[numb
     "",
     markdownText(description),
     "",
-    `${notes.length} 篇笔记`,
+    `<p class="atlas-list-meta">${notes.length} 篇笔记</p>`,
     "",
     list,
     "",
@@ -123,9 +155,9 @@ function buildTag(tag: string, notes: Note[]): string {
     frontmatter(`#${tag}`, ["aside: false"]),
     `# #${markdownText(tag)}`,
     "",
-    `${notes.length} 篇笔记`,
+    `<p class="atlas-list-meta">${notes.length} 篇笔记</p>`,
     "",
-    notes.map(noteLine).join("\n"),
+    notes.length > 0 ? noteList(notes) : "这个标签下还没有笔记。",
     "",
   ].join("\n");
 }
@@ -136,7 +168,7 @@ function buildSidebar(index: KnowledgeIndex): DefaultTheme.SidebarItem[] {
     ...CATEGORIES.map((category) => ({
       text: category.name,
       link: `/category/${category.slug}`,
-      collapsed: false,
+      collapsed: true,
       items: (index.byCategory.get(category.slug) ?? []).map((note) => ({
         text: note.title,
         link: noteHref(note.id),

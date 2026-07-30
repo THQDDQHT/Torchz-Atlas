@@ -95,15 +95,17 @@ function loginPage(message = "") {
     :root { color-scheme: light dark; --accent:#3451b2; --bg:#fff; --surface:#f6f6f7; --text:#3c3c43; --muted:#67676c; --divider:#e2e2e3; --danger:#b42318; }
     * { box-sizing:border-box; }
     body { margin:0; min-height:100vh; background:var(--bg); color:var(--text); font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; }
-    header { height:64px; border-bottom:1px solid var(--divider); display:flex; align-items:center; padding:0 24px; font-weight:600; }
+    header { height:64px; border-bottom:1px solid var(--divider); display:flex; align-items:center; gap:10px; padding:0 24px; font-weight:600; }
+    .mark { width:10px; height:10px; border-radius:4px; background:var(--accent); }
     main { width:min(100% - 40px, 380px); margin:0 auto; padding:clamp(72px,14vh,128px) 0 48px; }
     h1 { margin:0 0 12px; font-size:28px; line-height:1.25; letter-spacing:-.02em; }
     .intro { margin:0 0 32px; color:var(--muted); line-height:1.7; }
     label { display:block; margin-bottom:8px; font-size:14px; font-weight:600; }
-    input { width:100%; height:44px; border:1px solid var(--divider); border-radius:8px; padding:0 12px; background:var(--bg); color:var(--text); font:inherit; outline:none; }
+    input { width:100%; height:44px; border:1px solid var(--divider); border-radius:8px; padding:0 12px; background:var(--bg); color:var(--text); font:inherit; outline:none; transition:border-color 0.15s ease, box-shadow 0.15s ease; }
     input:focus { border-color:var(--accent); box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent); }
-    button { width:100%; height:44px; margin-top:16px; border:0; border-radius:8px; background:var(--accent); color:#fff; font:600 15px/1 inherit; cursor:pointer; }
+    button { width:100%; height:44px; margin-top:16px; border:0; border-radius:8px; background:var(--accent); color:#fff; font:600 15px/1 inherit; cursor:pointer; transition:filter 0.15s ease, transform 0.1s ease; }
     button:hover { filter:brightness(1.08); }
+    button:active { transform:scale(0.98); }
     button:focus-visible { outline:3px solid color-mix(in srgb,var(--accent) 32%,transparent); outline-offset:3px; }
     .hint,.notice { margin:14px 0 0; font-size:13px; line-height:1.6; }
     .hint { color:var(--muted); }
@@ -115,7 +117,7 @@ function loginPage(message = "") {
   </style>
 </head>
 <body>
-  <header>Torchz Atlas</header>
+  <header><span class="mark"></span>Torchz Atlas</header>
   <main>
     <h1>输入访问密码</h1>
     <p class="intro">这是一个私人知识库。</p>
